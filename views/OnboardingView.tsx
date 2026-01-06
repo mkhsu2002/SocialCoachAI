@@ -20,7 +20,8 @@ const OnboardingView: React.FC<OnboardingViewProps> = ({ onSave, initialProfile 
     destination: '導流至 Penana 觀看連載，累積粉絲出版實體書',
     targetAudience: '18-35歲，喜歡 D&D、日系輕小說、異世界題材的讀者。喜歡看設定集與角色設計圖。',
     targetRegion: '台灣',
-    additionalNotes: ''
+    additionalNotes: '',
+    copywriterPersona: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -126,6 +127,21 @@ const OnboardingView: React.FC<OnboardingViewProps> = ({ onSave, initialProfile 
             onChange={(e) => setProfile({ ...profile, additionalNotes: e.target.value })}
           />
           <p className="text-xs text-slate-500 mt-1">此欄位內容會被 AI 在分析時考慮進去</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            7. 小編人設提示詞 <span className="text-xs text-slate-500 font-normal">(選填)</span>
+          </label>
+          <textarea
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none h-32"
+            placeholder="描述你的小編寫作風格、語氣、特色等（例如：親切幽默、專業嚴謹、輕鬆活潑、文青風格、使用特定口頭禪等）"
+            value={profile.copywriterPersona || ''}
+            onChange={(e) => setProfile({ ...profile, copywriterPersona: e.target.value })}
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            💡 此設定會影響 AI 生成貼文內容的語氣和風格。例如：「語氣親切幽默，喜歡使用 Emoji，偶爾會分享個人小故事，結尾常用問句與讀者互動」
+          </p>
         </div>
 
         <button

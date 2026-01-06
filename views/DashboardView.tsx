@@ -484,6 +484,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
       {selectedInspiration && (
         <InspirationEditorModal
           inspiration={selectedInspiration}
+          profile={profile}
           isOpen={isEditorOpen}
           draftContent={(() => {
             const index = inspirations.findIndex(insp => insp === selectedInspiration);

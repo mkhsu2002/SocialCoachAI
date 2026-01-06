@@ -13,7 +13,8 @@ export function isUserProfile(obj: unknown): obj is UserProfile {
     typeof profile.destination === 'string' &&
     typeof profile.targetAudience === 'string' &&
     typeof profile.targetRegion === 'string' &&
-    typeof profile.additionalNotes === 'string'
+    typeof profile.additionalNotes === 'string' &&
+    (profile.copywriterPersona === undefined || typeof profile.copywriterPersona === 'string')
   );
 }
 

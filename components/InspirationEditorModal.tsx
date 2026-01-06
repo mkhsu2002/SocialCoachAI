@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { DailyInspiration } from '../types';
+import { DailyInspiration, UserProfile } from '../types';
+import { generatePostContent } from '../services/generatePostContent';
+import { useApiKey } from '../contexts/ApiKeyContext';
+import { useToast } from '../contexts/ToastContext';
+import { handleError } from '../utils/errorHandler';
+import LoadingSpinner from './LoadingSpinner';
 
 interface InspirationEditorModalProps {
   inspiration: DailyInspiration | null;
+  profile: UserProfile;
   isOpen: boolean;
   onClose: () => void;
   onSave: (content: string) => void;
@@ -12,15 +18,19 @@ interface InspirationEditorModalProps {
 
 const InspirationEditorModal: React.FC<InspirationEditorModalProps> = ({
   inspiration,
+  profile,
   isOpen,
   onClose,
   onSave,
   onPost,
   draftContent
 }) => {
+  const { apiKey } = useApiKey();
+  const { showToast } = useToast();
   const [editedContent, setEditedContent] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     if (inspiration) {
@@ -64,6 +74,46 @@ const InspirationEditorModal: React.FC<InspirationEditorModalProps> = ({
       console.error('標記已貼文失敗:', error);
     } finally {
       setIsPosting(false);
+    }
+  };
+
+  const handleGenerateContent = async () => {
+    if (!inspiration) return;
+    setIsGenerating(true);
+    try {
+      const generated = await generatePostContent(inspiration, profile, apiKey);
+      // 將生成的內容插入到編輯區域的「發文內容」部分
+      const lines = editedContent.split('\n');
+      const contentIndex = lines.findIndex(line => line.includes('【發文內容】'));
+      if (contentIndex !== -1) {
+        // 找到「發文內容」標記後，清除之後的所有內容，然後插入新生成的內容
+        const beforeContent = lines.slice(0, contentIndex + 1).join('\n');
+        const newContent = `${beforeContent}\n${generated}`;
+        setEditedContent(newContent);
+      } else {
+        // 如果沒有找到「發文內容」標記，檢查是否有其他標記
+        // 如果有「Hook 開場」或「建議形式」，在最後追加；否則直接替換
+        if (editedContent.trim() && !editedContent.includes('【')) {
+          // 如果已經有內容但不是模板格式，詢問是否替換
+          if (window.confirm('是否要用 AI 生成的內容替換現有內容？')) {
+            setEditedContent(`【靈感主題】\n${inspiration.idea}\n\n【Hook 開場】\n${inspiration.hook}\n\n【建議形式】\n${inspiration.formatSuggestion}\n\n【發文內容】\n${generated}`);
+          } else {
+            // 追加到現有內容後面
+            setEditedContent(prev => `${prev}\n\n--- AI 生成內容 ---\n${generated}`);
+          }
+        } else {
+          // 使用模板格式
+          setEditedContent(`【靈感主題】\n${inspiration.idea}\n\n【Hook 開場】\n${inspiration.hook}\n\n【建議形式】\n${inspiration.formatSuggestion}\n\n【發文內容】\n${generated}`);
+        }
+      }
+      showToast('AI 生成內容成功！', 'success');
+    } catch (error) {
+      const errorMessage = handleError(error, {
+        defaultMessage: 'AI 生成內容失敗，請檢查 API Key 是否已設定'
+      });
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -114,18 +164,37 @@ const InspirationEditorModal: React.FC<InspirationEditorModalProps> = ({
 
           {/* 編輯區域 */}
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">
-              <i className="fa-solid fa-pen mr-1"></i>
-              發文內容
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-bold text-slate-700">
+                <i className="fa-solid fa-pen mr-1"></i>
+                發文內容
+              </label>
+              <button
+                onClick={handleGenerateContent}
+                disabled={isGenerating}
+                className="px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center gap-2"
+              >
+                {isGenerating ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    <span>AI 生成中...</span>
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-magic"></i>
+                    <span>AI 生成內容</span>
+                  </>
+                )}
+              </button>
+            </div>
             <textarea
               className="w-full px-4 py-3 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 h-96 font-mono text-sm leading-relaxed"
-              placeholder="在這裡撰寫你的發文內容..."
+              placeholder="在這裡撰寫你的發文內容，或點擊「AI 生成內容」讓 AI 幫你撰寫..."
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
             />
             <p className="text-xs text-slate-500 mt-2">
-              💡 提示：你可以參考上方的原始靈感資訊，然後撰寫適合你風格的發文內容
+              💡 提示：你可以參考上方的原始靈感資訊，然後撰寫適合你風格的發文內容，或使用「AI 生成內容」功能讓 AI 根據你的基本設定和小編人設自動生成
             </p>
           </div>
         </div>

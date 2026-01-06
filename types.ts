@@ -6,6 +6,7 @@ export interface UserProfile {
   targetAudience: string;
   targetRegion: string; // 目標區域，預設為「台灣」
   additionalNotes: string; // 補充說明：可填寫更多粉專關聯的作品或品牌的描述
+  copywriterPersona?: string; // 小編人設提示詞：描述小編的寫作風格、語氣、特色等
 }
 
 export type ResourceItemType = 

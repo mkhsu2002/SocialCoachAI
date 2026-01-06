@@ -118,7 +118,7 @@ export const profileStorage = {
         return null;
       }
 
-      // 處理舊資料遷移：referenceUrl -> additionalNotes, 加入 targetRegion
+      // 處理舊資料遷移：referenceUrl -> additionalNotes, 加入 targetRegion, copywriterPersona
       const migratedProfile: UserProfile = {
         fanPageName: typeof parsed.fanPageName === 'string' ? parsed.fanPageName : '',
         positioning: typeof parsed.positioning === 'string' ? parsed.positioning : '',
@@ -128,6 +128,7 @@ export const profileStorage = {
         additionalNotes: typeof parsed.additionalNotes === 'string' 
           ? parsed.additionalNotes 
           : (typeof parsed.referenceUrl === 'string' ? parsed.referenceUrl : ''),
+        copywriterPersona: typeof parsed.copywriterPersona === 'string' ? parsed.copywriterPersona : undefined,
       };
 
       if (isUserProfile(migratedProfile)) {
