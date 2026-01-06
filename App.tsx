@@ -126,10 +126,13 @@ const AppContent: React.FC = () => {
           )}
 
           {!profile && activeState !== AppState.ONBOARDING && (
-            <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8">
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 text-center">
+                FlyPig 社群自媒體 AI 陪跑教練
+              </h1>
               <button 
                 onClick={() => setActiveState(AppState.ONBOARDING)}
-                className="bg-indigo-600 text-white px-6 py-3 rounded-xl"
+                className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 font-medium"
               >
                 請先完成基礎設定
               </button>
