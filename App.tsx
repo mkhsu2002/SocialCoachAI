@@ -62,70 +62,72 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      {profile && (
-        <Sidebar 
-          activeState={activeState} 
-          onNavigate={setActiveState} 
-          userName={profile.fanPageName}
-        />
-      )}
-      
-      <main className="flex-1 overflow-x-hidden pb-20 md:pb-0">
-        {activeState === AppState.ONBOARDING && (
-          <OnboardingView onSave={handleSaveProfile} initialProfile={profile || undefined} />
+    <div className="flex flex-col min-h-screen bg-slate-50">
+      <div className="flex flex-1">
+        {profile && (
+          <Sidebar 
+            activeState={activeState} 
+            onNavigate={setActiveState} 
+            userName={profile.fanPageName}
+          />
         )}
         
-        {profile && (
-          <>
-            {activeState === AppState.SCHEDULE_SETUP && (
-              <ScheduleSetupView 
-                profile={profile} 
-                schedule={schedule} 
-                onSaveSchedule={handleSaveSchedule} 
-              />
-            )}
-            {activeState === AppState.DASHBOARD && (
-              <DashboardView 
-                profile={profile} 
-                schedule={schedule}
-                memories={memories}
-                vault={vault}
-                onNavigate={setActiveState}
-                onAddMemory={addMemory}
-              />
-            )}
-            {activeState === AppState.VAULT && (
-              <VaultView items={vault} onAdd={addVaultItem} onDelete={deleteVaultItem} />
-            )}
-            {activeState === AppState.STRATEGY && (
-              <StrategyChatView 
-                profile={profile} 
-                memories={memories} 
-                onAddMemory={addMemory}
-              />
-            )}
-            {activeState === AppState.MEMORY && (
-              <MemoryView 
-                memories={memories} 
-                onAdd={addMemory} 
-                onDelete={deleteMemory} 
-              />
-            )}
-          </>
-        )}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto pb-20 md:pb-0">
+          {activeState === AppState.ONBOARDING && (
+            <OnboardingView onSave={handleSaveProfile} initialProfile={profile || undefined} />
+          )}
+          
+          {profile && (
+            <>
+              {activeState === AppState.SCHEDULE_SETUP && (
+                <ScheduleSetupView 
+                  profile={profile} 
+                  schedule={schedule} 
+                  onSaveSchedule={handleSaveSchedule} 
+                />
+              )}
+              {activeState === AppState.DASHBOARD && (
+                <DashboardView 
+                  profile={profile} 
+                  schedule={schedule}
+                  memories={memories}
+                  vault={vault}
+                  onNavigate={setActiveState}
+                  onAddMemory={addMemory}
+                />
+              )}
+              {activeState === AppState.VAULT && (
+                <VaultView items={vault} onAdd={addVaultItem} onDelete={deleteVaultItem} />
+              )}
+              {activeState === AppState.STRATEGY && (
+                <StrategyChatView 
+                  profile={profile} 
+                  memories={memories} 
+                  onAddMemory={addMemory}
+                />
+              )}
+              {activeState === AppState.MEMORY && (
+                <MemoryView 
+                  memories={memories} 
+                  onAdd={addMemory} 
+                  onDelete={deleteMemory} 
+                />
+              )}
+            </>
+          )}
 
-        {!profile && activeState !== AppState.ONBOARDING && (
-          <div className="flex items-center justify-center h-full">
-            <button 
-              onClick={() => setActiveState(AppState.ONBOARDING)}
-              className="bg-indigo-600 text-white px-6 py-3 rounded-xl"
-            >
-              請先完成基礎設定
-            </button>
-          </div>
-        )}
-      </main>
+          {!profile && activeState !== AppState.ONBOARDING && (
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <button 
+                onClick={() => setActiveState(AppState.ONBOARDING)}
+                className="bg-indigo-600 text-white px-6 py-3 rounded-xl"
+              >
+                請先完成基礎設定
+              </button>
+            </div>
+          )}
+        </main>
+      </div>
 
       {/* Mobile Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-3 z-50">
@@ -148,7 +150,7 @@ const AppContent: React.FC = () => {
       </nav>
 
       {/* Footer */}
-      <footer className="hidden md:block w-full bg-white border-t border-slate-200 py-4 px-6">
+      <footer className="hidden md:block w-full bg-white border-t border-slate-200 py-4 px-6 mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col items-center justify-center gap-2">
           <p className="text-sm text-slate-600">
             Copyright © 2025{' '}
