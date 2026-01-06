@@ -226,8 +226,205 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
               </button>
             </div>
             <div className="overflow-y-auto p-6 space-y-8">
-                 {/* 簡化顯示，實際代碼中應保留完整的指南內容 */}
-                 <p className="text-slate-600">（實戰指南內容保持不變）</p>
+              {/* 基礎概念 */}
+              <section>
+                <h4 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                  <i className="fa-solid fa-lightbulb text-amber-500"></i>
+                  基礎概念
+                </h4>
+                <div className="space-y-3 text-slate-700">
+                  <p className="leading-relaxed">
+                    社群經營不是單純的發文，而是建立與粉絲的深度連結。成功的社群經營需要<strong className="text-indigo-600">策略規劃</strong>、<strong className="text-indigo-600">內容品質</strong>和<strong className="text-indigo-600">持續互動</strong>。
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 ml-2">
+                    <li>明確的定位能幫助你吸引對的受眾</li>
+                    <li>內容要有價值，不只是推銷產品</li>
+                    <li>與粉絲互動，建立真實的連結</li>
+                    <li>保持一致性，讓品牌形象清晰</li>
+                  </ul>
+                </div>
+              </section>
+
+              {/* 內容策略 */}
+              <section>
+                <h4 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                  <i className="fa-solid fa-chess text-indigo-500"></i>
+                  內容策略
+                </h4>
+                <div className="space-y-4">
+                  <div className="bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-500">
+                    <h5 className="font-bold text-indigo-900 mb-2">1. 內容類型平衡</h5>
+                    <p className="text-sm text-indigo-800">
+                      建議每週內容包含：<strong>40% 價值型內容</strong>（教學、乾貨）、<strong>30% 互動型內容</strong>（投票、問答）、<strong>30% 人設型內容</strong>（幕後、生活感）。
+                    </p>
+                  </div>
+                  <div className="bg-amber-50 p-4 rounded-lg border-l-4 border-amber-500">
+                    <h5 className="font-bold text-amber-900 mb-2">2. Hook 的重要性</h5>
+                    <p className="text-sm text-amber-800">
+                      前 3 秒決定用戶是否停留。使用<strong>疑問句</strong>、<strong>數字</strong>、<strong>對比</strong>或<strong>故事開頭</strong>來吸引注意力。
+                    </p>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+                    <h5 className="font-bold text-green-900 mb-2">3. 內容規劃</h5>
+                    <p className="text-sm text-green-800">
+                      使用<strong>週課表</strong>規劃內容，確保每天都有明確的主題和目的。避免臨時起意，保持內容的連貫性和策略性。
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* 演算法優化 */}
+              <section>
+                <h4 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                  <i className="fa-solid fa-chart-line text-green-500"></i>
+                  演算法優化
+                </h4>
+                <div className="space-y-3 text-slate-700">
+                  <div className="flex items-start gap-3">
+                    <span className="text-indigo-600 font-bold">✓</span>
+                    <div>
+                      <strong>互動率優先：</strong>回覆留言、按讚、分享比粉絲數更重要
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-indigo-600 font-bold">✓</span>
+                    <div>
+                      <strong>發布時機：</strong>觀察粉絲活躍時間，在高峰時段發布
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-indigo-600 font-bold">✓</span>
+                    <div>
+                      <strong>避免降權：</strong>不要使用過多 Hashtag、避免過度推銷、不要買粉絲
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-indigo-600 font-bold">✓</span>
+                    <div>
+                      <strong>影片優先：</strong>影片內容通常獲得更高的觸及率和互動
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* 互動技巧 */}
+              <section>
+                <h4 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                  <i className="fa-solid fa-comments text-blue-500"></i>
+                  互動技巧
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <h5 className="font-bold text-slate-900 mb-2">💬 留言回覆</h5>
+                    <p className="text-sm text-slate-600">
+                      24 小時內回覆留言，使用個人化回應，讓粉絲感受到被重視
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <h5 className="font-bold text-slate-900 mb-2">📊 投票互動</h5>
+                    <p className="text-sm text-slate-600">
+                      使用投票功能了解粉絲偏好，增加互動率的同時收集數據
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <h5 className="font-bold text-slate-900 mb-2">🎁 限時活動</h5>
+                    <p className="text-sm text-slate-600">
+                      定期舉辦小活動、抽獎或限時優惠，增加粉絲參與度
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <h5 className="font-bold text-slate-900 mb-2">📸 故事功能</h5>
+                    <p className="text-sm text-slate-600">
+                      善用限時動態分享日常，增加與粉絲的親近感
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* 常見錯誤 */}
+              <section>
+                <h4 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                  <i className="fa-solid fa-triangle-exclamation text-red-500"></i>
+                  常見錯誤與避免方法
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border-l-4 border-red-400">
+                    <i className="fa-solid fa-xmark text-red-600 mt-1"></i>
+                    <div>
+                      <strong className="text-red-900">過度推銷：</strong>
+                      <p className="text-sm text-red-800 mt-1">每篇都是產品廣告，粉絲會感到疲乏。建議 80% 價值內容，20% 推廣內容。</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border-l-4 border-red-400">
+                    <i className="fa-solid fa-xmark text-red-600 mt-1"></i>
+                    <div>
+                      <strong className="text-red-900">不一致的風格：</strong>
+                      <p className="text-sm text-red-800 mt-1">今天搞笑、明天嚴肅，粉絲會感到困惑。建立明確的品牌調性並保持一致。</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border-l-4 border-red-400">
+                    <i className="fa-solid fa-xmark text-red-600 mt-1"></i>
+                    <div>
+                      <strong className="text-red-900">忽略數據：</strong>
+                      <p className="text-sm text-red-800 mt-1">不分析哪些內容表現好，無法優化策略。定期檢視數據，調整內容方向。</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* 成長建議 */}
+              <section>
+                <h4 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                  <i className="fa-solid fa-rocket text-purple-500"></i>
+                  持續成長建議
+                </h4>
+                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-5 rounded-lg border border-indigo-200">
+                  <ol className="space-y-3 text-slate-700">
+                    <li className="flex items-start gap-3">
+                      <span className="bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
+                      <div>
+                        <strong>建立素材庫：</strong>平時收集靈感、素材和角色設定，發文時就不會沒有靈感
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
+                      <div>
+                        <strong>記錄成長筆記：</strong>記錄經營洞察、里程碑和用戶回饋，建立長期記憶
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
+                      <div>
+                        <strong>定期檢視策略：</strong>每週或每月檢視內容表現，調整週課表和內容方向
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">4</span>
+                      <div>
+                        <strong>保持耐心：</strong>社群經營是長期投資，需要時間累積信任和影響力
+                      </div>
+                    </li>
+                  </ol>
+                </div>
+              </section>
+
+              {/* 工具推薦 */}
+              <section>
+                <h4 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                  <i className="fa-solid fa-toolbox text-slate-500"></i>
+                  善用工具
+                </h4>
+                <div className="text-slate-700 space-y-2">
+                  <p>本應用程式提供以下功能幫助你更有效率地經營社群：</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li><strong>週課表規劃：</strong>AI 協助規劃一週內容策略</li>
+                    <li><strong>每日靈感生成：</strong>根據課表自動生成發文靈感</li>
+                    <li><strong>素材庫管理：</strong>儲存靈感、素材和角色設定</li>
+                    <li><strong>AI 教練對話：</strong>隨時詢問經營問題，獲得專業建議</li>
+                    <li><strong>成長筆記：</strong>記錄重要洞察和里程碑</li>
+                  </ul>
+                </div>
+              </section>
             </div>
           </div>
         </div>
