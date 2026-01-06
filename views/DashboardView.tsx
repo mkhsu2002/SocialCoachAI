@@ -17,9 +17,10 @@ interface DashboardViewProps {
   vault: ResourceItem[];
   onNavigate: (state: AppState) => void;
   onAddMemory: (content: string, category: MemoryEntry['category']) => void;
+  onUpdateVaultItem: (id: string, updates: Partial<ResourceItem>) => void;
 }
 
-const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memories, vault, onNavigate, onAddMemory }) => {
+const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memories, vault, onNavigate, onAddMemory, onUpdateVaultItem }) => {
   const { apiKey } = useApiKey();
   const { showToast } = useToast();
   const [inspirations, setInspirations] = useState<DailyInspiration[]>([]);
@@ -73,11 +74,26 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
       if (forceRefresh) {
         setInspirations([]);
       }
-      const data = await generateDailyInspirations(profile, todayPlan, vault, memories, apiKey, forceRefresh);
-      setInspirations(data);
+      const result = await generateDailyInspirations(profile, todayPlan, vault, memories, apiKey, forceRefresh);
+      setInspirations(result.inspirations);
       // 儲存到 localStorage，避免切換畫面時消失
-      setDailyInspirations(data);
-      showToast('靈感生成成功！', 'success');
+      setDailyInspirations(result.inspirations);
+      
+      // 如果有選中的素材，自動標記為已使用
+      if (result.selectedResourceId) {
+        onUpdateVaultItem(result.selectedResourceId, {
+          isUsed: true,
+          usedAt: new Date().toISOString()
+        });
+        const selectedResource = vault.find(item => item.id === result.selectedResourceId);
+        if (selectedResource) {
+          showToast(`靈感生成成功！已參考素材「${selectedResource.title}」並標記為已使用`, 'success');
+        } else {
+          showToast('靈感生成成功！', 'success');
+        }
+      } else {
+        showToast('靈感生成成功！', 'success');
+      }
     } catch (err) {
       const errorMessage = handleError(err, {
         defaultMessage: '靈感生成失敗，請檢查 API Key 是否已設定'
@@ -94,7 +110,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
     } finally {
       setLoading(false);
     }
-  }, [todayPlan, profile, memories, apiKey, showToast]);
+  }, [todayPlan, profile, vault, memories, apiKey, showToast, onUpdateVaultItem]);
 
   // 如果沒有課表，引導去設定
   if (schedule.length === 0) {

@@ -96,6 +96,7 @@ const AppContent: React.FC = () => {
                   vault={vault}
                   onNavigate={setActiveState}
                   onAddMemory={addMemory}
+                  onUpdateVaultItem={updateVaultItem}
                 />
               )}
               {activeState === AppState.VAULT && (

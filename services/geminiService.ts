@@ -202,7 +202,7 @@ export async function generateDailyInspirations(
   memories: MemoryEntry[],
   apiKey: string | null,
   forceRefresh: boolean = false
-): Promise<DailyInspiration[]> {
+): Promise<{ inspirations: DailyInspiration[]; selectedResourceId: string | null }> {
   const cacheKey = getCacheKey('dailyInspirations', {
     day: dayPlan.day,
     type: dayPlan.type,
@@ -218,16 +218,14 @@ export async function generateDailyInspirations(
     pendingRequests.delete(cacheKey);
   }
 
-  // 檢查快取（30分鐘）
-  const cached = apiCache.get<DailyInspiration[]>(cacheKey);
-  if (cached && !forceRefresh) {
-    return cached;
-  }
+  // 檢查快取（30分鐘）- 注意：快取不包含 selectedResourceId，因為每次應該隨機選擇
+  // 所以快取只在非強制刷新時使用，且不包含素材標記邏輯
+  // 為了簡化，我們不使用快取，每次都重新生成並隨機選擇素材
 
   // 檢查是否有進行中的請求
   const pendingRequest = pendingRequests.get(cacheKey);
   if (pendingRequest) {
-    return pendingRequest as Promise<DailyInspiration[]>;
+    return pendingRequest as Promise<{ inspirations: DailyInspiration[]; selectedResourceId: string | null }>;
   }
 
   const requestPromise = withRetry(
@@ -235,8 +233,22 @@ export async function generateDailyInspirations(
       const ai = createAIInstance(apiKey);
       const memoryContext = getMemoryContext(memories);
       
+      // 隨機選擇一個未使用的素材
+      const unusedResources = vault.filter(item => !item.isUsed);
+      let selectedResource: ResourceItem | null = null;
+      let selectedResourceId: string | null = null;
+      
+      if (unusedResources.length > 0) {
+        // 隨機選擇一個素材
+        const randomIndex = Math.floor(Math.random() * unusedResources.length);
+        selectedResource = unusedResources[randomIndex];
+        selectedResourceId = selectedResource.id;
+      }
+      
       // 準備素材庫內容
-      const vaultContext = vault.length > 0
+      const vaultContext = selectedResource
+        ? `請優先參考以下素材來生成靈感（這是從素材庫中隨機選出的素材）：\n- [${selectedResource.type}] ${selectedResource.title}: ${selectedResource.content}\n\n請根據這個素材的內容，生成 3 個相關的發文靈感。`
+        : vault.length > 0
         ? `目前的素材庫內容（請優先參考這些素材來生成靈感）：\n${vault
             .filter(item => !item.isUsed) // 只顯示未使用的素材
             .map(v => `- [${v.type}] ${v.title}: ${v.content}`)
@@ -277,10 +289,11 @@ ${memoryContext}
         throw new AppError('API 回應格式錯誤', 'INVALID_RESPONSE', false);
       }
 
-      // 儲存到快取（30分鐘）
-      apiCache.set(cacheKey, result, 30 * 60 * 1000);
-      
-      return result;
+      // 返回靈感和選中的素材 ID
+      return {
+        inspirations: result,
+        selectedResourceId
+      };
     },
     {
       maxRetries: 3,
