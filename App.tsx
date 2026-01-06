@@ -145,7 +145,7 @@ const AppContent: React.FC = () => {
 
       {/* Footer */}
       <footer className="hidden md:block w-full bg-white border-t border-slate-200 py-4 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-center">
+        <div className="max-w-7xl mx-auto flex flex-col items-center justify-center gap-2">
           <p className="text-sm text-slate-600">
             Copyright © 2025{' '}
             <a 
@@ -157,6 +157,9 @@ const AppContent: React.FC = () => {
               FlyPig AI
             </a>
             . All rights reserved.
+          </p>
+          <p className="text-xs text-slate-400">
+            Version <span className="font-medium text-slate-500">v0.1</span>
           </p>
         </div>
       </footer>
