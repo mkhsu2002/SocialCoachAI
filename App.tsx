@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppState } from './types';
 import { ApiKeyProvider } from './contexts/ApiKeyContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -19,6 +19,7 @@ import ScheduleSetupView from './views/ScheduleSetupView';
  */
 const AppContent: React.FC = () => {
   const [activeState, setActiveState] = useState<AppState>(AppState.ONBOARDING);
+  const hasInitialized = useRef(false);
   const { 
     profile, 
     setProfile, 
@@ -33,10 +34,13 @@ const AppContent: React.FC = () => {
     isLoading 
   } = useAppData();
 
-  // 如果有 Profile，預設導向 Dashboard
+  // 只在首次載入時，如果有 Profile，才導向 Dashboard
   useEffect(() => {
-    if (profile && !isLoading) {
-      setActiveState(AppState.DASHBOARD);
+    if (!isLoading && !hasInitialized.current) {
+      hasInitialized.current = true;
+      if (profile) {
+        setActiveState(AppState.DASHBOARD);
+      }
     }
   }, [profile, isLoading]);
 
