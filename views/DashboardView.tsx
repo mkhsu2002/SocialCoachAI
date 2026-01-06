@@ -47,12 +47,16 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
     }
   }, []);
 
-  const fetchInspirations = useCallback(async () => {
+  const fetchInspirations = useCallback(async (forceRefresh: boolean = false) => {
     if (!todayPlan) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await generateDailyInspirations(profile, todayPlan, memories, apiKey);
+      // 如果已經有靈感且要強制刷新，先清空顯示以提供視覺反饋
+      if (forceRefresh) {
+        setInspirations([]);
+      }
+      const data = await generateDailyInspirations(profile, todayPlan, memories, apiKey, forceRefresh);
       setInspirations(data);
       // 儲存到 localStorage，避免切換畫面時消失
       setDailyInspirations(data);
@@ -63,6 +67,13 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
       });
       setError(errorMessage);
       showToast(errorMessage, 'error');
+      // 如果刷新失敗，恢復之前的靈感
+      if (forceRefresh) {
+        const savedInspirations = getDailyInspirations();
+        if (savedInspirations.length > 0) {
+          setInspirations(savedInspirations);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -132,11 +143,20 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
                     </button>
                 ) : (
                     <button
-                        onClick={fetchInspirations}
+                        onClick={() => fetchInspirations(true)}
                         disabled={loading}
                         className="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
                     >
-                        <i className="fa-solid fa-rotate"></i> 換一批靈感
+                        {loading ? (
+                            <>
+                                <LoadingSpinner size="sm" />
+                                <span>生成中...</span>
+                            </>
+                        ) : (
+                            <>
+                                <i className="fa-solid fa-rotate"></i> 換一批靈感
+                            </>
+                        )}
                     </button>
                 )}
              </div>

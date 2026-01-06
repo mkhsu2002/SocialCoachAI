@@ -199,7 +199,8 @@ export async function generateDailyInspirations(
   profile: UserProfile,
   dayPlan: DayPlan,
   memories: MemoryEntry[],
-  apiKey: string | null
+  apiKey: string | null,
+  forceRefresh: boolean = false
 ): Promise<DailyInspiration[]> {
   const cacheKey = getCacheKey('dailyInspirations', {
     day: dayPlan.day,
@@ -209,9 +210,15 @@ export async function generateDailyInspirations(
     memoryCount: memories.length
   });
 
+  // 如果強制刷新，先清除快取
+  if (forceRefresh) {
+    apiCache.clear(cacheKey);
+    pendingRequests.delete(cacheKey);
+  }
+
   // 檢查快取（30分鐘）
   const cached = apiCache.get<DailyInspiration[]>(cacheKey);
-  if (cached) {
+  if (cached && !forceRefresh) {
     return cached;
   }
 
