@@ -113,9 +113,29 @@ export const profileStorage = {
     if (!data) return null;
 
     try {
-      const parsed = safeJsonParse<UserProfile>(data, null);
-      if (parsed && isUserProfile(parsed)) {
-        return parsed;
+      const parsed = safeJsonParse<Record<string, unknown>>(data, null);
+      if (!parsed) {
+        return null;
+      }
+
+      // 處理舊資料遷移：referenceUrl -> additionalNotes, 加入 targetRegion
+      const migratedProfile: UserProfile = {
+        fanPageName: typeof parsed.fanPageName === 'string' ? parsed.fanPageName : '',
+        positioning: typeof parsed.positioning === 'string' ? parsed.positioning : '',
+        destination: typeof parsed.destination === 'string' ? parsed.destination : '',
+        targetAudience: typeof parsed.targetAudience === 'string' ? parsed.targetAudience : '',
+        targetRegion: typeof parsed.targetRegion === 'string' ? parsed.targetRegion : '台灣',
+        additionalNotes: typeof parsed.additionalNotes === 'string' 
+          ? parsed.additionalNotes 
+          : (typeof parsed.referenceUrl === 'string' ? parsed.referenceUrl : ''),
+      };
+
+      if (isUserProfile(migratedProfile)) {
+        // 如果資料有變更，自動儲存遷移後的資料
+        if (parsed.referenceUrl && !parsed.additionalNotes) {
+          this.set(migratedProfile);
+        }
+        return migratedProfile;
       }
       console.warn('Profile 資料格式無效，已清除');
       this.remove();
@@ -231,10 +251,43 @@ export const scheduleStorage = {
     if (!data) return [];
 
     try {
-      const parsed = safeJsonParse<DayPlan[]>(data, []);
-      if (isDayPlanArray(parsed)) {
-        return parsed;
+      const parsed = safeJsonParse<Array<Record<string, unknown>>>(data, []);
+      if (!Array.isArray(parsed)) {
+        console.warn('Schedule 資料格式無效，已清除');
+        this.remove();
+        return [];
       }
+
+      // 處理舊資料遷移：為沒有 priority 的 DayPlan 加入預設值
+      // 週一、三、五、日為 required，其他為 optional
+      const requiredDays: DayPlan['day'][] = ['Monday', 'Wednesday', 'Friday', 'Sunday'];
+      
+      const migratedSchedule: DayPlan[] = parsed
+        .filter(item => 
+          typeof item.day === 'string' && 
+          typeof item.type === 'string' && 
+          typeof item.purpose === 'string'
+        )
+        .map(item => ({
+          day: item.day as DayPlan['day'],
+          type: item.type as string,
+          purpose: item.purpose as string,
+          priority: item.priority === 'required' || item.priority === 'optional'
+            ? (item.priority as DayPlan['priority'])
+            : (requiredDays.includes(item.day as DayPlan['day']) ? 'required' : 'optional'),
+        }));
+
+      // 驗證遷移後的資料
+      if (isDayPlanArray(migratedSchedule)) {
+        // 如果資料有變更，自動儲存遷移後的資料
+        const hasChanges = parsed.some(item => !item.priority || 
+          (item.priority !== 'required' && item.priority !== 'optional'));
+        if (hasChanges) {
+          this.set(migratedSchedule);
+        }
+        return migratedSchedule;
+      }
+      
       console.warn('Schedule 資料格式無效，已清除');
       this.remove();
       return [];

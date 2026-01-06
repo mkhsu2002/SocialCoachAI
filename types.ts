@@ -4,7 +4,8 @@ export interface UserProfile {
   positioning: string;
   destination: string;
   targetAudience: string;
-  referenceUrl: string;
+  targetRegion: string; // 目標區域，預設為「台灣」
+  additionalNotes: string; // 補充說明：可填寫更多粉專關聯的作品或品牌的描述
 }
 
 export interface ResourceItem {
@@ -49,6 +50,7 @@ export interface DayPlan {
   day: DayOfWeek;
   type: string; // e.g., "新章節預告/金句圖"
   purpose: string; // e.g., "吸引讀者期待"
+  priority: 'required' | 'optional'; // required: 首要行程（週一、三、五、日）, optional: 建議備選（週二、四、六）
 }
 
 export interface DailyInspiration {

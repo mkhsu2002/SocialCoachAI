@@ -12,7 +12,8 @@ export function isUserProfile(obj: unknown): obj is UserProfile {
     typeof profile.positioning === 'string' &&
     typeof profile.destination === 'string' &&
     typeof profile.targetAudience === 'string' &&
-    typeof profile.referenceUrl === 'string'
+    typeof profile.targetRegion === 'string' &&
+    typeof profile.additionalNotes === 'string'
   );
 }
 
@@ -29,7 +30,8 @@ export function isDayPlan(obj: unknown): obj is DayPlan {
   return (
     isDayOfWeek(plan.day) &&
     typeof plan.type === 'string' &&
-    typeof plan.purpose === 'string'
+    typeof plan.purpose === 'string' &&
+    (plan.priority === 'required' || plan.priority === 'optional')
   );
 }
 

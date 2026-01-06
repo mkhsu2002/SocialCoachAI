@@ -48,11 +48,16 @@ const WEEKLY_PLAN_SCHEMA = {
   items: {
     type: Type.OBJECT,
     properties: {
-      day: { type: Type.STRING, description: '星期幾 (Monday, Tuesday...)' },
-      type: { type: Type.STRING, description: '內容類型 (例如：角色設定公開)' },
-      purpose: { type: Type.STRING, description: '目的 (例如：增加互動)' }
+      day: { type: Type.STRING, description: '星期幾 (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday)' },
+      type: { type: Type.STRING, description: '內容類型，需具體且可執行（例如：角色設定公開、連載預告、讀者互動問答、幕後花絮分享等）。內容類型不限於特定分類，可廣泛發想，但需確保多樣性與合理性' },
+      purpose: { type: Type.STRING, description: '經營目的，需明確且與整體目標相關（例如：增加互動、建立期待、強化人設、提供價值等）' },
+      priority: { 
+        type: Type.STRING, 
+        description: '優先級：required（首要行程，週一、三、五、日必須包含）或 optional（建議備選，週二、四、六可選）',
+        enum: ['required', 'optional']
+      }
     },
-    required: ['day', 'type', 'purpose']
+    required: ['day', 'type', 'purpose', 'priority']
   }
 };
 
@@ -98,21 +103,58 @@ export async function generateWeeklyPlan(profile: UserProfile, apiKey: string | 
   const requestPromise = withRetry(
     async () => {
       const ai = createAIInstance(apiKey);
-      const systemInstruction = `你是一位專業的社群經營教練。請根據用戶資料，規劃「一週內容排程表」。
-用戶定位：${profile.positioning}
-目標受眾：${profile.targetAudience}
-經營目的：${profile.destination}
+      const systemInstruction = `你是一位深耕${profile.targetRegion}市場的專業社群經營教練，擁有豐富的實戰經驗。
 
-請規劃週一到週日每天的「內容類型」與「目的」。
-策略須包含：
-1. 互動型內容（投票、問答）
-2. 價值型內容（教學、乾貨、連載更新）
-3. 人設型內容（幕後、生活感）
-請確保內容類型多樣化，不要每天都一樣。`;
+【用戶資料】
+- 粉專名稱：${profile.fanPageName}
+- 內容定位：${profile.positioning}
+- 目標受眾：${profile.targetAudience}
+- 經營目的：${profile.destination}
+- 目標區域：${profile.targetRegion}
+${profile.additionalNotes ? `- 補充說明：${profile.additionalNotes}` : ''}
+
+【任務目標】
+請為用戶規劃一份「一週內容排程表」，包含每天的「內容類型」、「目的」與「優先級」。
+
+【重要原則】
+1. **內容類型設計**：
+   - 不限定於特定分類（如互動型、價值型、人設型），可廣泛發想各種創意內容類型
+   - 內容類型需具體且可執行，避免過於抽象
+   - 確保內容類型多樣化，避免重複或相似
+   - 內容類型需符合用戶的定位與目標受眾
+   - 考慮${profile.targetRegion}市場的特色與文化
+
+2. **發文頻率與優先級**：
+   - **首要行程（required）**：週一、週三、週五、週日必須包含，這些是核心發文日
+   - **建議備選（optional）**：週二、週四、週六可選，視情況安排
+   - 不一定要每天都有行程，但首要行程必須完整
+   - 優先級為 optional 的行程，應提供有價值但非必要的內容
+
+3. **內容多樣性與合理性**：
+   - 確保一週內的內容類型不重複
+   - 內容需符合用戶的定位與目標受眾
+   - 考慮內容之間的邏輯關聯性
+   - 確保內容目的明確且與經營目標一致
+
+4. **${profile.targetRegion}市場特色**：
+   - 考慮當地文化、語言習慣、節慶活動
+   - 了解當地社群的互動模式與偏好
+   - 參考當地成功的社群經營案例`;
 
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: "請為我生成一週社群經營課表。",
+        contents: `請根據我的用戶資料，為我生成一份完整的一週社群經營課表。
+
+要求：
+1. 內容類型需廣泛發想，不限定於特定分類，但要確保多樣性與合理性
+2. 週一、週三、週五、週日為首要行程（priority: required），必須包含
+3. 週二、週四、週六為建議備選（priority: optional），可視情況安排
+4. 每個內容類型需具體且可執行
+5. 每個內容需有明確的經營目的
+6. 考慮${profile.targetRegion}市場的特色與文化
+7. ${profile.additionalNotes ? `請特別參考補充說明中的資訊：${profile.additionalNotes}` : ''}
+
+請確保課表符合我的定位「${profile.positioning}」與目標受眾「${profile.targetAudience}」，並有助於達成經營目的「${profile.destination}」。`,
         config: {
           systemInstruction,
           responseMimeType: "application/json",

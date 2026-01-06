@@ -23,8 +23,13 @@ const ScheduleSetupView: React.FC<ScheduleSetupViewProps> = ({ profile, schedule
     setLoading(true);
     try {
       const plan = await generateWeeklyPlan(profile, apiKey);
-      // Sort plan based on DAY_ORDER
-      const sortedPlan = plan.sort((a, b) => DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day));
+      // Sort plan: 先按 priority (required 在前)，再按 DAY_ORDER
+      const sortedPlan = plan.sort((a, b) => {
+        if (a.priority !== b.priority) {
+          return a.priority === 'required' ? -1 : 1;
+        }
+        return DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day);
+      });
       setCurrentSchedule(sortedPlan);
       setIsEditing(true); // 產生後預設進入編輯模式讓用戶確認
       showToast('課表生成成功！', 'success');
@@ -44,7 +49,7 @@ const ScheduleSetupView: React.FC<ScheduleSetupViewProps> = ({ profile, schedule
     showToast('課表已儲存', 'success');
   }, [currentSchedule, onSaveSchedule, showToast]);
 
-  const handleEditChange = useCallback((index: number, field: keyof DayPlan, value: string) => {
+  const handleEditChange = useCallback((index: number, field: keyof DayPlan, value: string | DayPlan['priority']) => {
     setCurrentSchedule(prev => {
       const newSchedule = [...prev];
       newSchedule[index] = { ...newSchedule[index], [field]: value };
@@ -122,15 +127,36 @@ const ScheduleSetupView: React.FC<ScheduleSetupViewProps> = ({ profile, schedule
       <div className="bg-slate-900 rounded-2xl overflow-hidden shadow-xl border border-slate-800">
         <div className="grid grid-cols-12 bg-slate-800 p-4 text-slate-400 text-sm font-bold uppercase tracking-wider border-b border-slate-700">
             <div className="col-span-2">星期</div>
+            <div className="col-span-3">優先級</div>
             <div className="col-span-4">內容類型</div>
-            <div className="col-span-6">目的</div>
+            <div className="col-span-3">目的</div>
         </div>
         
         <div className="divide-y divide-slate-800">
             {currentSchedule.map((day, index) => (
-                <div key={index} className="grid grid-cols-12 p-4 items-center hover:bg-slate-800/50 transition-colors">
+                <div key={index} className={`grid grid-cols-12 p-4 items-center hover:bg-slate-800/50 transition-colors ${day.priority === 'required' ? 'bg-slate-800/30' : ''}`}>
                     <div className="col-span-2 text-indigo-400 font-bold">
                         {DAY_OF_WEEK_MAP[day.day] || day.day}
+                    </div>
+                    <div className="col-span-3 pr-2">
+                        {isEditing ? (
+                            <select
+                                value={day.priority}
+                                onChange={(e) => handleEditChange(index, 'priority', e.target.value as DayPlan['priority'])}
+                                className="w-full bg-slate-800 border border-slate-600 text-white px-2 py-1 rounded text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                            >
+                                <option value="required">首要行程</option>
+                                <option value="optional">建議備選</option>
+                            </select>
+                        ) : (
+                            <span className={`text-xs font-bold px-2 py-1 rounded ${
+                                day.priority === 'required' 
+                                    ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            }`}>
+                                {day.priority === 'required' ? '首要' : '備選'}
+                            </span>
+                        )}
                     </div>
                     <div className="col-span-4 pr-4">
                         {isEditing ? (
@@ -138,22 +164,22 @@ const ScheduleSetupView: React.FC<ScheduleSetupViewProps> = ({ profile, schedule
                                 type="text" 
                                 value={day.type}
                                 onChange={(e) => handleEditChange(index, 'type', e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-600 text-white px-2 py-1 rounded focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className="w-full bg-slate-800 border border-slate-600 text-white px-2 py-1 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                             />
                         ) : (
-                            <span className="text-white font-medium">{day.type}</span>
+                            <span className="text-white font-medium text-sm">{day.type}</span>
                         )}
                     </div>
-                    <div className="col-span-6">
+                    <div className="col-span-3">
                         {isEditing ? (
                             <input 
                                 type="text" 
                                 value={day.purpose}
                                 onChange={(e) => handleEditChange(index, 'purpose', e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-600 text-slate-300 px-2 py-1 rounded focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className="w-full bg-slate-800 border border-slate-600 text-slate-300 px-2 py-1 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                             />
                         ) : (
-                            <span className="text-slate-400 text-sm">{day.purpose}</span>
+                            <span className="text-slate-400 text-xs">{day.purpose}</span>
                         )}
                     </div>
                 </div>

@@ -19,7 +19,8 @@ const OnboardingView: React.FC<OnboardingViewProps> = ({ onSave, initialProfile 
     positioning: '奇幻小說創作 / 寫作幕後 / 世界觀設定',
     destination: '導流至 Penana 觀看連載，累積粉絲出版實體書',
     targetAudience: '18-35歲，喜歡 D&D、日系輕小說、異世界題材的讀者。喜歡看設定集與角色設計圖。',
-    referenceUrl: 'https://www.penana.com/example'
+    targetRegion: '台灣',
+    additionalNotes: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -100,14 +101,31 @@ const OnboardingView: React.FC<OnboardingViewProps> = ({ onSave, initialProfile 
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">5. 參考網址 (Optional)</label>
-          <input
-            type="url"
+          <label className="block text-sm font-medium text-slate-700 mb-1">5. 目標區域</label>
+          <select
+            required
             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-            placeholder="你的作品連載網址或參考粉專"
-            value={profile.referenceUrl}
-            onChange={(e) => setProfile({ ...profile, referenceUrl: e.target.value })}
+            value={profile.targetRegion}
+            onChange={(e) => setProfile({ ...profile, targetRegion: e.target.value })}
+          >
+            <option value="台灣">台灣</option>
+            <option value="香港">香港</option>
+            <option value="澳門">澳門</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            6. 補充說明 <span className="text-xs text-slate-500 font-normal">(選填)</span>
+          </label>
+          <textarea
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none h-24"
+            placeholder="可填寫更多粉專關聯的作品或品牌的描述，幫助教練更了解你的內容風格"
+            value={profile.additionalNotes}
+            onChange={(e) => setProfile({ ...profile, additionalNotes: e.target.value })}
           />
+          <p className="text-xs text-slate-500 mt-1">此欄位內容會被 AI 在分析時考慮進去</p>
         </div>
 
         <button
