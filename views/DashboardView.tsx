@@ -5,6 +5,7 @@ import { useApiKey } from '../contexts/ApiKeyContext';
 import { useToast } from '../contexts/ToastContext';
 import { generateDailyInspirations } from '../services/geminiService';
 import { handleError } from '../utils/errorHandler';
+import { getDailyInspirations, setDailyInspirations } from '../utils/dailyInspirationsStorage';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 interface DashboardViewProps {
@@ -38,6 +39,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
     }
   }, [schedule, todayDayName]);
 
+  // 載入今日已儲存的靈感
+  useEffect(() => {
+    const savedInspirations = getDailyInspirations();
+    if (savedInspirations.length > 0) {
+      setInspirations(savedInspirations);
+    }
+  }, []);
+
   const fetchInspirations = useCallback(async () => {
     if (!todayPlan) return;
     setLoading(true);
@@ -45,6 +54,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
     try {
       const data = await generateDailyInspirations(profile, todayPlan, memories, apiKey);
       setInspirations(data);
+      // 儲存到 localStorage，避免切換畫面時消失
+      setDailyInspirations(data);
       showToast('靈感生成成功！', 'success');
     } catch (err) {
       const errorMessage = handleError(err, {

@@ -2,8 +2,12 @@
 import React, { useState, useCallback, memo, useMemo } from 'react';
 import { ResourceItem } from '../types';
 import { useToast } from '../contexts/ToastContext';
+import { useApiKey } from '../contexts/ApiKeyContext';
 import { searchVaultItems } from '../utils/searchUtils';
+import { extractContentFromUrl, isValidUrl } from '../utils/urlContentExtractor';
+import { handleError } from '../utils/errorHandler';
 import SearchInput from '../components/SearchInput';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface VaultViewProps {
   items: ResourceItem[];
@@ -13,11 +17,14 @@ interface VaultViewProps {
 
 const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onDelete }) => {
   const { showToast } = useToast();
+  const { apiKey } = useApiKey();
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newType, setNewType] = useState<ResourceItem['type']>('inspiration');
   const [searchQuery, setSearchQuery] = useState('');
+  const [urlInput, setUrlInput] = useState('');
+  const [isExtractingUrl, setIsExtractingUrl] = useState(false);
 
   // 搜尋過濾
   const filteredItems = useMemo(() => {
@@ -43,6 +50,34 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onDelete }) => {
     }
   }, []);
 
+  const handleExtractFromUrl = useCallback(async () => {
+    if (!urlInput.trim()) {
+      showToast('請輸入網址', 'warning');
+      return;
+    }
+
+    if (!isValidUrl(urlInput.trim())) {
+      showToast('請輸入有效的網址', 'warning');
+      return;
+    }
+
+    setIsExtractingUrl(true);
+    try {
+      const extracted = await extractContentFromUrl(urlInput.trim(), apiKey);
+      setNewTitle(extracted.title);
+      setNewContent(extracted.content);
+      setUrlInput('');
+      showToast('內容抓取成功！', 'success');
+    } catch (error) {
+      const errorMessage = handleError(error, {
+        defaultMessage: '無法抓取網址內容，請檢查 API Key 是否已設定'
+      });
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsExtractingUrl(false);
+    }
+  }, [urlInput, apiKey, showToast]);
+
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <header className="mb-8 flex justify-between items-center">
@@ -63,6 +98,47 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onDelete }) => {
         <div className="bg-white p-6 rounded-2xl border border-indigo-200 mb-8 shadow-md">
           <h3 className="font-bold text-slate-800 mb-4">新增內容</h3>
           <div className="space-y-4">
+            {/* 網址抓取功能 */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <label className="block text-xs font-bold text-slate-700 mb-2">
+                <i className="fa-solid fa-link mr-1"></i>
+                從網址自動抓取內容（選填）
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  className="flex-1 px-3 py-2 border border-blue-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="貼上網址，例如：https://example.com/article"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleExtractFromUrl()}
+                  disabled={isExtractingUrl}
+                />
+                <button
+                  onClick={handleExtractFromUrl}
+                  disabled={isExtractingUrl || !urlInput.trim()}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isExtractingUrl ? (
+                    <>
+                      <LoadingSpinner size="sm" />
+                      <span className="text-sm">抓取中...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-download"></i>
+                      <span className="text-sm">抓取</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                💡 提示：輸入網址後點擊「抓取」，系統會根據網址生成內容摘要建議。
+                <br />
+                📝 如需匯入 NotebookLM 筆記本內容，請先從 NotebookLM 複製內容，然後貼到下方「內容描述/筆記」欄位。
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1">標題</label>
