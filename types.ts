@@ -22,8 +22,31 @@ export interface MemoryEntry {
   content: string;
 }
 
+/**
+ * 星期幾的型別定義
+ */
+export type DayOfWeek = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
+
+/**
+ * 星期幾的中文對照
+ */
+export const DAY_OF_WEEK_MAP: Record<DayOfWeek, string> = {
+  Monday: '星期一',
+  Tuesday: '星期二',
+  Wednesday: '星期三',
+  Thursday: '星期四',
+  Friday: '星期五',
+  Saturday: '星期六',
+  Sunday: '星期日',
+};
+
+/**
+ * 星期幾的順序（用於排序）
+ */
+export const DAY_ORDER: DayOfWeek[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
 export interface DayPlan {
-  day: string; // "Monday", "Tuesday"...
+  day: DayOfWeek;
   type: string; // e.g., "新章節預告/金句圖"
   purpose: string; // e.g., "吸引讀者期待"
 }

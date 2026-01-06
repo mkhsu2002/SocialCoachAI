@@ -1,6 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo, useMemo } from 'react';
 import { ResourceItem } from '../types';
+import { useToast } from '../contexts/ToastContext';
+import { searchVaultItems } from '../utils/searchUtils';
+import SearchInput from '../components/SearchInput';
 
 interface VaultViewProps {
   items: ResourceItem[];
@@ -9,18 +12,36 @@ interface VaultViewProps {
 }
 
 const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onDelete }) => {
+  const { showToast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newType, setNewType] = useState<ResourceItem['type']>('inspiration');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleAdd = () => {
-    if (!newTitle || !newContent) return;
+  // 搜尋過濾
+  const filteredItems = useMemo(() => {
+    return searchVaultItems(items, searchQuery);
+  }, [items, searchQuery]);
+
+  const handleAdd = useCallback(() => {
+    if (!newTitle || !newContent) {
+      showToast('請填寫標題和內容', 'warning');
+      return;
+    }
     onAdd({ title: newTitle, content: newContent, type: newType });
     setNewTitle('');
     setNewContent('');
     setIsAdding(false);
-  };
+    showToast('素材已加入庫房', 'success');
+  }, [newTitle, newContent, newType, onAdd, showToast]);
+
+  const handleTypeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value === 'inspiration' || value === 'asset' || value === 'character_design') {
+      setNewType(value);
+    }
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
@@ -58,7 +79,7 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onDelete }) => {
                 <select
                   className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
                   value={newType}
-                  onChange={(e) => setNewType(e.target.value as any)}
+                  onChange={handleTypeChange}
                 >
                   <option value="inspiration">經營靈感</option>
                   <option value="asset">發文素材</option>
@@ -85,14 +106,30 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onDelete }) => {
         </div>
       )}
 
+      {/* 搜尋輸入 */}
+      {items.length > 0 && (
+        <div className="mb-6">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="搜尋素材標題、內容或類型..."
+          />
+        </div>
+      )}
+
       {items.length === 0 ? (
         <div className="text-center py-24 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
           <i className="fa-solid fa-box-open text-4xl text-slate-300 mb-4"></i>
           <p className="text-slate-500">目前還沒有素材，快來新增第一份靈感吧！</p>
         </div>
+      ) : filteredItems.length === 0 ? (
+        <div className="text-center py-24 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+          <i className="fa-solid fa-magnifying-glass text-4xl text-slate-300 mb-4"></i>
+          <p className="text-slate-500">找不到符合「{searchQuery}」的素材</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {items.map((item) => (
+          {filteredItems.map((item) => (
             <div key={item.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-200 transition-all group">
               <div className="flex justify-between items-start mb-3">
                 <span className={`text-[10px] uppercase font-black px-2 py-1 rounded-md ${
@@ -119,4 +156,4 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onDelete }) => {
   );
 };
 
-export default VaultView;
+export default memo(VaultView);

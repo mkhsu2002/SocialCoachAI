@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApiKey } from '../contexts/ApiKeyContext';
+import { validateApiKeyFormat } from '../utils/apiKeyValidator';
 
 interface ApiKeySetupModalProps {
   isOpen: boolean;
@@ -17,8 +18,11 @@ const ApiKeySetupModal: React.FC<ApiKeySetupModalProps> = ({ isOpen, onClose, on
 
   const handleSave = () => {
     const trimmedKey = inputKey.trim();
-    if (!trimmedKey) {
-      setError('請輸入 API Key');
+    
+    // 驗證 API Key 格式
+    const validation = validateApiKeyFormat(trimmedKey);
+    if (!validation.valid) {
+      setError(validation.error || 'API Key 格式無效');
       return;
     }
     

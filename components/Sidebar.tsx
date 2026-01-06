@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { AppState } from '../types';
 import { useApiKey } from '../contexts/ApiKeyContext';
 import ApiKeySetupModal from './ApiKeySetupModal';
+import DataExportModal from './DataExportModal';
 
 interface SidebarProps {
   activeState: AppState;
@@ -13,6 +14,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ activeState, onNavigate, userName }) => {
   const { isApiKeySet } = useApiKey();
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [showDataExportModal, setShowDataExportModal] = useState(false);
   
   const navItems = [
     { id: AppState.DASHBOARD, label: '每日任務', icon: 'fa-calendar-day' },
@@ -27,9 +29,12 @@ const Sidebar: React.FC<SidebarProps> = ({ activeState, onNavigate, userName }) 
     <aside className="w-64 bg-white border-r border-slate-200 h-screen sticky top-0 flex flex-col hidden md:flex">
       <div className="p-6 border-b border-slate-100">
         <h1 className="text-xl font-bold text-indigo-600 flex items-center gap-2">
-          <i className="fa-solid fa-rocket"></i> 陪跑教練
+          <i className="fa-solid fa-rocket"></i> 社群AI陪跑教練
         </h1>
-        <p className="text-xs text-slate-500 mt-1">為 1,000+ 創作者而生</p>
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-xs text-slate-500">為 1,000+ 創作者而生</p>
+          <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-medium">v0.1</span>
+        </div>
       </div>
       
       <nav className="flex-1 p-4 space-y-2">
@@ -74,12 +79,27 @@ const Sidebar: React.FC<SidebarProps> = ({ activeState, onNavigate, userName }) 
             {isApiKeySet ? 'API Key 已設定' : '設定 API Key'}
           </span>
         </button>
+
+        {/* 資料備份按鈕 */}
+        <button
+          onClick={() => setShowDataExportModal(true)}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
+        >
+          <i className="fa-solid fa-database"></i>
+          <span className="font-medium">資料備份</span>
+        </button>
       </div>
 
       {/* API Key 設定 Modal */}
       <ApiKeySetupModal 
         isOpen={showApiKeyModal} 
         onClose={() => setShowApiKeyModal(false)}
+      />
+
+      {/* 資料匯出/匯入 Modal */}
+      <DataExportModal 
+        isOpen={showDataExportModal} 
+        onClose={() => setShowDataExportModal(false)}
       />
     </aside>
   );

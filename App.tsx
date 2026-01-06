@@ -1,8 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { AppState, UserProfile, ResourceItem, MemoryEntry, DayPlan } from './types';
+import { AppState } from './types';
 import { ApiKeyProvider } from './contexts/ApiKeyContext';
+import { ToastProvider } from './contexts/ToastContext';
+import { AppDataProvider, useAppData } from './contexts/AppDataContext';
 import Sidebar from './components/Sidebar';
+import LoadingSpinner from './components/LoadingSpinner';
+import OfflineIndicator from './components/OfflineIndicator';
 import OnboardingView from './views/OnboardingView';
 import DashboardView from './views/DashboardView';
 import VaultView from './views/VaultView';
@@ -10,98 +14,60 @@ import StrategyChatView from './views/StrategyChatView';
 import MemoryView from './views/MemoryView';
 import ScheduleSetupView from './views/ScheduleSetupView';
 
-const App: React.FC = () => {
+/**
+ * App 內容組件（使用 AppData Context）
+ */
+const AppContent: React.FC = () => {
   const [activeState, setActiveState] = useState<AppState>(AppState.ONBOARDING);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [vault, setVault] = useState<ResourceItem[]>([]);
-  const [memories, setMemories] = useState<MemoryEntry[]>([]);
-  const [schedule, setSchedule] = useState<DayPlan[]>([]);
+  const { 
+    profile, 
+    setProfile, 
+    vault, 
+    addVaultItem, 
+    deleteVaultItem, 
+    memories, 
+    addMemory, 
+    deleteMemory, 
+    schedule, 
+    setSchedule,
+    isLoading 
+  } = useAppData();
 
-  // Load state from localStorage on mount
+  // 如果有 Profile，預設導向 Dashboard
   useEffect(() => {
-    const savedProfile = localStorage.getItem('coach_profile');
-    const savedVault = localStorage.getItem('coach_vault');
-    const savedMemories = localStorage.getItem('coach_memories');
-    const savedSchedule = localStorage.getItem('coach_schedule');
-    
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
-      // 如果有 Profile 但沒有 Schedule，或者有 Schedule，都預設去 Dashboard
-      // DashboardView 內部會處理「沒有 Schedule」的狀況
+    if (profile && !isLoading) {
       setActiveState(AppState.DASHBOARD);
     }
-    if (savedVault) {
-      setVault(JSON.parse(savedVault));
-    }
-    if (savedMemories) {
-      setMemories(JSON.parse(savedMemories));
-    }
-    if (savedSchedule) {
-      setSchedule(JSON.parse(savedSchedule));
-    }
-  }, []);
+  }, [profile, isLoading]);
 
-  const handleSaveProfile = (newProfile: UserProfile) => {
+  const handleSaveProfile = (newProfile: NonNullable<typeof profile>) => {
     setProfile(newProfile);
-    localStorage.setItem('coach_profile', JSON.stringify(newProfile));
     // 新用戶填完資料後，直接引導至課表設定
     setActiveState(AppState.SCHEDULE_SETUP);
   };
 
-  const handleSaveSchedule = (newSchedule: DayPlan[]) => {
+  const handleSaveSchedule = (newSchedule: typeof schedule) => {
     setSchedule(newSchedule);
-    localStorage.setItem('coach_schedule', JSON.stringify(newSchedule));
     // 設定完課表後，進入 Dashboard
     setActiveState(AppState.DASHBOARD);
   };
 
-  const handleAddVaultItem = (item: Omit<ResourceItem, 'id' | 'createdAt'>) => {
-    const newItem: ResourceItem = {
-      ...item,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
-    };
-    const updatedVault = [newItem, ...vault];
-    setVault(updatedVault);
-    localStorage.setItem('coach_vault', JSON.stringify(updatedVault));
-  };
-
-  const handleDeleteVaultItem = (id: string) => {
-    const updatedVault = vault.filter(v => v.id !== id);
-    setVault(updatedVault);
-    localStorage.setItem('coach_vault', JSON.stringify(updatedVault));
-  };
-
-  const handleAddMemory = (content: string, category: MemoryEntry['category']) => {
-    const newMemory: MemoryEntry = {
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-      category,
-      content
-    };
-    const updatedMemories = [newMemory, ...memories];
-    setMemories(updatedMemories);
-    localStorage.setItem('coach_memories', JSON.stringify(updatedMemories));
-  };
-
-  const handleDeleteMemory = (id: string) => {
-    const updatedMemories = memories.filter(m => m.id !== id);
-    setMemories(updatedMemories);
-    localStorage.setItem('coach_memories', JSON.stringify(updatedMemories));
-  };
+  // 載入中顯示
+  if (isLoading) {
+    return <LoadingSpinner fullScreen text="載入中..." />;
+  }
 
   return (
-    <ApiKeyProvider>
-      <div className="flex min-h-screen bg-slate-50">
-        {profile && (
-          <Sidebar 
-            activeState={activeState} 
-            onNavigate={setActiveState} 
-            userName={profile.fanPageName}
-          />
-        )}
-        
-        <main className="flex-1 overflow-x-hidden pb-20 md:pb-0">
+    <div className="flex min-h-screen bg-slate-50">
+      {profile && (
+        <Sidebar 
+          activeState={activeState} 
+          onNavigate={setActiveState} 
+          userName={profile.fanPageName}
+        />
+      )}
+      
+      <main className="flex-1 overflow-x-hidden pb-20 md:pb-0">
         {activeState === AppState.ONBOARDING && (
           <OnboardingView onSave={handleSaveProfile} initialProfile={profile || undefined} />
         )}
@@ -120,26 +86,26 @@ const App: React.FC = () => {
                 profile={profile} 
                 schedule={schedule}
                 memories={memories}
-                vault={vault} // 雖然沒用到但接口可能有定義
+                vault={vault}
                 onNavigate={setActiveState}
-                onAddMemory={handleAddMemory}
+                onAddMemory={addMemory}
               />
             )}
             {activeState === AppState.VAULT && (
-              <VaultView items={vault} onAdd={handleAddVaultItem} onDelete={handleDeleteVaultItem} />
+              <VaultView items={vault} onAdd={addVaultItem} onDelete={deleteVaultItem} />
             )}
             {activeState === AppState.STRATEGY && (
               <StrategyChatView 
                 profile={profile} 
                 memories={memories} 
-                onAddMemory={handleAddMemory}
+                onAddMemory={addMemory}
               />
             )}
             {activeState === AppState.MEMORY && (
               <MemoryView 
                 memories={memories} 
-                onAdd={handleAddMemory} 
-                onDelete={handleDeleteMemory} 
+                onAdd={addMemory} 
+                onDelete={deleteMemory} 
               />
             )}
           </>
@@ -176,7 +142,40 @@ const App: React.FC = () => {
           <span className="text-[10px]">設定</span>
         </button>
       </nav>
-      </div>
+
+      {/* Footer */}
+      <footer className="hidden md:block w-full bg-white border-t border-slate-200 py-4 px-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-center">
+          <p className="text-sm text-slate-600">
+            Copyright © 2025{' '}
+            <a 
+              href="https://flypigai.icareu.tw/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+            >
+              FlyPig AI
+            </a>
+            . All rights reserved.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+/**
+ * App 根組件（提供所有 Context）
+ */
+const App: React.FC = () => {
+  return (
+    <ApiKeyProvider>
+      <ToastProvider>
+        <AppDataProvider>
+          <OfflineIndicator />
+          <AppContent />
+        </AppDataProvider>
+      </ToastProvider>
     </ApiKeyProvider>
   );
 };

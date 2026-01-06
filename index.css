@@ -6,3 +6,19 @@ body {
   background-color: #f8fafc;
 }
 
+/* Toast 動畫 */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-\[slideIn_0\.3s_ease-out\] {
+  animation: slideIn 0.3s ease-out;
+}
+

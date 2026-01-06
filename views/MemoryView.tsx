@@ -1,6 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo, useMemo } from 'react';
 import { MemoryEntry } from '../types';
+import { useToast } from '../contexts/ToastContext';
+import { searchMemoryEntries } from '../utils/searchUtils';
+import SearchInput from '../components/SearchInput';
 
 interface MemoryViewProps {
   memories: MemoryEntry[];
@@ -9,16 +12,34 @@ interface MemoryViewProps {
 }
 
 const MemoryView: React.FC<MemoryViewProps> = ({ memories, onAdd, onDelete }) => {
+  const { showToast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
   const [newContent, setNewContent] = useState('');
   const [newCategory, setNewCategory] = useState<MemoryEntry['category']>('insight');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleAdd = () => {
-    if (!newContent.trim()) return;
+  // 搜尋過濾
+  const filteredMemories = useMemo(() => {
+    return searchMemoryEntries(memories, searchQuery);
+  }, [memories, searchQuery]);
+
+  const handleAdd = useCallback(() => {
+    if (!newContent.trim()) {
+      showToast('請輸入紀錄內容', 'warning');
+      return;
+    }
     onAdd(newContent, newCategory);
     setNewContent('');
     setIsAdding(false);
-  };
+    showToast('已儲存至成長筆記', 'success');
+  }, [newContent, newCategory, onAdd, showToast]);
+
+  const handleCategoryChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value === 'insight' || value === 'milestone' || value === 'feedback') {
+      setNewCategory(value);
+    }
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
@@ -44,7 +65,7 @@ const MemoryView: React.FC<MemoryViewProps> = ({ memories, onAdd, onDelete }) =>
               <select
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                 value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value as any)}
+                onChange={handleCategoryChange}
               >
                 <option value="insight">經營洞察</option>
                 <option value="milestone">重要里程碑</option>
@@ -70,14 +91,30 @@ const MemoryView: React.FC<MemoryViewProps> = ({ memories, onAdd, onDelete }) =>
         </div>
       )}
 
+      {/* 搜尋輸入 */}
+      {memories.length > 0 && (
+        <div className="mb-6">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="搜尋筆記內容、類別或日期..."
+          />
+        </div>
+      )}
+
       {memories.length === 0 ? (
         <div className="text-center py-24 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
           <i className="fa-solid fa-brain text-4xl text-slate-300 mb-4"></i>
           <p className="text-slate-500">教練的大腦目前還是空的。開始對話或手動紀錄吧！</p>
         </div>
+      ) : filteredMemories.length === 0 ? (
+        <div className="text-center py-24 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+          <i className="fa-solid fa-magnifying-glass text-4xl text-slate-300 mb-4"></i>
+          <p className="text-slate-500">找不到符合「{searchQuery}」的筆記</p>
+        </div>
       ) : (
         <div className="relative border-l-2 border-indigo-100 ml-4 space-y-8 pb-10">
-          {memories.map((m) => (
+          {filteredMemories.map((m) => (
             <div key={m.id} className="relative pl-8 group">
               <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-white border-2 border-indigo-500"></div>
               <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-200 transition-all">
@@ -108,4 +145,4 @@ const MemoryView: React.FC<MemoryViewProps> = ({ memories, onAdd, onDelete }) =>
   );
 };
 
-export default MemoryView;
+export default memo(MemoryView);

@@ -1,8 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
-import { UserProfile, DayPlan } from '../types';
+import React, { useState, useMemo, useCallback } from 'react';
+import { UserProfile, DayPlan, DAY_ORDER, DAY_OF_WEEK_MAP } from '../types';
 import { useApiKey } from '../contexts/ApiKeyContext';
+import { useToast } from '../contexts/ToastContext';
 import { generateWeeklyPlan } from '../services/geminiService';
+import { handleError } from '../utils/errorHandler';
 
 interface ScheduleSetupViewProps {
   profile: UserProfile;
@@ -12,42 +14,43 @@ interface ScheduleSetupViewProps {
 
 const ScheduleSetupView: React.FC<ScheduleSetupViewProps> = ({ profile, schedule, onSaveSchedule }) => {
   const { apiKey } = useApiKey();
+  const { showToast } = useToast();
   const [currentSchedule, setCurrentSchedule] = useState<DayPlan[]>(schedule);
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // 定義星期的順序，確保排序正確
-  const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const dayMap: { [key: string]: string } = {
-    'Monday': '星期一', 'Tuesday': '星期二', 'Wednesday': '星期三',
-    'Thursday': '星期四', 'Friday': '星期五', 'Saturday': '星期六', 'Sunday': '星期日'
-  };
-
-  const handleGenerate = async () => {
+  const handleGenerate = useCallback(async () => {
     setLoading(true);
     try {
       const plan = await generateWeeklyPlan(profile, apiKey);
-      // Sort plan based on dayOrder
-      const sortedPlan = plan.sort((a, b) => dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day));
+      // Sort plan based on DAY_ORDER
+      const sortedPlan = plan.sort((a, b) => DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day));
       setCurrentSchedule(sortedPlan);
       setIsEditing(true); // 產生後預設進入編輯模式讓用戶確認
+      showToast('課表生成成功！', 'success');
     } catch (error) {
-      alert("生成失敗，請檢查 API Key 是否已設定。");
+      const errorMessage = handleError(error, {
+        defaultMessage: '生成失敗，請檢查 API Key 是否已設定'
+      });
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [profile, apiKey, showToast]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     onSaveSchedule(currentSchedule);
     setIsEditing(false);
-  };
+    showToast('課表已儲存', 'success');
+  }, [currentSchedule, onSaveSchedule, showToast]);
 
-  const handleEditChange = (index: number, field: keyof DayPlan, value: string) => {
-    const newSchedule = [...currentSchedule];
-    newSchedule[index] = { ...newSchedule[index], [field]: value };
-    setCurrentSchedule(newSchedule);
-  };
+  const handleEditChange = useCallback((index: number, field: keyof DayPlan, value: string) => {
+    setCurrentSchedule(prev => {
+      const newSchedule = [...prev];
+      newSchedule[index] = { ...newSchedule[index], [field]: value };
+      return newSchedule;
+    });
+  }, []);
 
   // 如果沒有課表，提示生成
   if (currentSchedule.length === 0 && !loading) {
@@ -127,7 +130,7 @@ const ScheduleSetupView: React.FC<ScheduleSetupViewProps> = ({ profile, schedule
             {currentSchedule.map((day, index) => (
                 <div key={index} className="grid grid-cols-12 p-4 items-center hover:bg-slate-800/50 transition-colors">
                     <div className="col-span-2 text-indigo-400 font-bold">
-                        {dayMap[day.day] || day.day}
+                        {DAY_OF_WEEK_MAP[day.day] || day.day}
                     </div>
                     <div className="col-span-4 pr-4">
                         {isEditing ? (

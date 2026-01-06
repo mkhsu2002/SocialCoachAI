@@ -1,8 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { UserProfile, DayPlan, DailyInspiration, MemoryEntry, AppState } from '../types';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { UserProfile, DayPlan, DailyInspiration, MemoryEntry, AppState, DayOfWeek } from '../types';
 import { useApiKey } from '../contexts/ApiKeyContext';
+import { useToast } from '../contexts/ToastContext';
 import { generateDailyInspirations } from '../services/geminiService';
+import { handleError } from '../utils/errorHandler';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface DashboardViewProps {
   profile: UserProfile;
@@ -14,40 +17,45 @@ interface DashboardViewProps {
 
 const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memories, onNavigate, onAddMemory }) => {
   const { apiKey } = useApiKey();
+  const { showToast } = useToast();
   const [inspirations, setInspirations] = useState<DailyInspiration[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
   const [todayPlan, setTodayPlan] = useState<DayPlan | null>(null);
 
-  // 取得今天星期幾 (Monday, Tuesday...)
-  const getTodayDayName = () => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  // 取得今天星期幾 (Monday, Tuesday...) - 使用 useMemo 快取
+  const todayDayName = useMemo<DayOfWeek>(() => {
+    const days: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return days[new Date().getDay()];
-  };
+  }, []);
 
   useEffect(() => {
     // 檢查是否有課表
     if (schedule.length > 0) {
-      const dayName = getTodayDayName();
-      const plan = schedule.find(d => d.day === dayName);
+      const plan = schedule.find(d => d.day === todayDayName);
       setTodayPlan(plan || null);
     }
-  }, [schedule]);
+  }, [schedule, todayDayName]);
 
-  const fetchInspirations = async () => {
+  const fetchInspirations = useCallback(async () => {
     if (!todayPlan) return;
     setLoading(true);
     setError(null);
     try {
       const data = await generateDailyInspirations(profile, todayPlan, memories, apiKey);
       setInspirations(data);
+      showToast('靈感生成成功！', 'success');
     } catch (err) {
-      setError("靈感生成失敗，請檢查 API Key 是否已設定。");
+      const errorMessage = handleError(err, {
+        defaultMessage: '靈感生成失敗，請檢查 API Key 是否已設定'
+      });
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [todayPlan, profile, memories, apiKey, showToast]);
 
   // 如果沒有課表，引導去設定
   if (schedule.length === 0) {
@@ -101,9 +109,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
                         className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-indigo-900/50 flex items-center gap-2 disabled:opacity-70"
                     >
                         {loading ? (
-                            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> 思考中...</>
+                            <>
+                                <LoadingSpinner size="sm" />
+                                <span>思考中...</span>
+                            </>
                         ) : (
-                            <><i className="fa-solid fa-lightbulb"></i> 給我 3 個發文靈感</>
+                            <>
+                                <i className="fa-solid fa-lightbulb"></i> 給我 3 個發文靈感
+                            </>
                         )}
                     </button>
                 ) : (
@@ -212,4 +225,4 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
   );
 };
 
-export default DashboardView;
+export default memo(DashboardView);

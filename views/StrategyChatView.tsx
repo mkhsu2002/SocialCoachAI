@@ -1,8 +1,10 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { UserProfile, MemoryEntry } from '../types';
 import { useApiKey } from '../contexts/ApiKeyContext';
+import { useToast } from '../contexts/ToastContext';
 import { getGeneralCoaching } from '../services/geminiService';
+import { handleError } from '../utils/errorHandler';
 
 interface Message {
   role: 'user' | 'coach';
@@ -17,6 +19,7 @@ interface StrategyChatViewProps {
 
 const StrategyChatView: React.FC<StrategyChatViewProps> = ({ profile, memories, onAddMemory }) => {
   const { apiKey } = useApiKey();
+  const { showToast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     { role: 'coach', text: `嘿 ${profile.fanPageName}！我是你的專屬陪跑教練。今天有什麼經營上的困擾嗎？✨` }
   ]);
@@ -28,7 +31,7 @@ const StrategyChatView: React.FC<StrategyChatViewProps> = ({ profile, memories, 
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     if (!input.trim() || loading) return;
 
     const userMsg = input.trim();
@@ -40,16 +43,20 @@ const StrategyChatView: React.FC<StrategyChatViewProps> = ({ profile, memories, 
       const reply = await getGeneralCoaching(profile, userMsg, memories, apiKey);
       setMessages(prev => [...prev, { role: 'coach', text: reply }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'coach', text: "教練現在有點忙，請檢查 API Key 是否已設定。" }]);
+      const errorMessage = handleError(err, {
+        defaultMessage: '教練現在有點忙，請檢查 API Key 是否已設定'
+      });
+      setMessages(prev => [...prev, { role: 'coach', text: errorMessage }]);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [input, loading, profile, memories, apiKey, showToast]);
 
-  const handleQuickSave = (text: string) => {
+  const handleQuickSave = useCallback((text: string) => {
     onAddMemory(text, 'insight');
-    alert('已快速存入成長筆記！');
-  };
+    showToast('已快速存入成長筆記！', 'success');
+  }, [onAddMemory, showToast]);
 
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-64px)] py-4 px-4 flex flex-col">
@@ -108,4 +115,4 @@ const StrategyChatView: React.FC<StrategyChatViewProps> = ({ profile, memories, 
   );
 };
 
-export default StrategyChatView;
+export default memo(StrategyChatView);
