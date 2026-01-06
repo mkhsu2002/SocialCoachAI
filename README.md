@@ -166,57 +166,6 @@ npm run format
 npm run format:check
 ```
 
-## 📁 專案結構
-
-```
-SocialCoachAI/
-├── components/          # React 組件
-│   ├── ApiKeySetupModal.tsx
-│   ├── DataExportModal.tsx
-│   ├── InspirationEditorModal.tsx
-│   ├── LoadingSpinner.tsx
-│   ├── OfflineIndicator.tsx
-│   ├── ResourceItemModal.tsx
-│   ├── SearchInput.tsx
-│   └── Sidebar.tsx
-├── contexts/            # React Context
-│   ├── ApiKeyContext.tsx
-│   ├── AppDataContext.tsx
-│   └── ToastContext.tsx
-├── hooks/               # 自訂 Hooks
-│   └── useOnlineStatus.ts
-├── services/            # API 服務
-│   ├── contentAnalyzer.ts
-│   ├── deriveResources.ts
-│   ├── generatePostContent.ts
-│   └── geminiService.ts
-├── utils/               # 工具函數
-│   ├── apiCache.ts
-│   ├── apiKeyValidator.ts
-│   ├── dataExport.ts
-│   ├── dailyInspirationsStorage.ts
-│   ├── errorHandler.ts
-│   ├── fileReader.ts
-│   ├── idGenerator.ts
-│   ├── inspirationDraftsStorage.ts
-│   ├── requestManager.ts
-│   ├── retry.ts
-│   ├── searchUtils.ts
-│   ├── storageService.ts
-│   ├── typeGuards.ts
-│   └── urlContentExtractor.ts
-├── views/               # 頁面視圖
-│   ├── DashboardView.tsx
-│   ├── MemoryView.tsx
-│   ├── OnboardingView.tsx
-│   ├── ScheduleSetupView.tsx
-│   ├── StrategyChatView.tsx
-│   └── VaultView.tsx
-├── App.tsx              # 主應用程式
-├── types.ts             # TypeScript 型別定義
-└── index.tsx            # 應用程式入口
-```
-
 ## 🎨 技術棧
 
 - **前端框架**: React 19.2.3
@@ -254,6 +203,8 @@ SocialCoachAI/
 - **[AI-PM-Designer-Pro](https://github.com/mkhsu2002/AI-PM-Designer-Pro)** - AI 視覺行銷生產力工具，基於 Google Gemini 2.5 Flash 與 Gemini 3 Pro Image，從產品圖自動生成完整行銷素材包
 
 - **[AI EC SEO Booster](https://github.com/mkhsu2002/AI-EC-SEO-Booster)** - 由 AI 驅動的智能電商市場分析與 SEO 內容策略生成工具，透過 Google Gemini API 提供專業的市場洞察、競爭分析、買家人物誌描繪，並自動生成 SEO 優化的內容策略與前導頁提示詞
+
+- **[AI Digital Portrait Studio](https://github.com/mkhsu2002/AI_Digital_Portrait_Studio)** - 專為電商設計的 AI 人像圖片生成工具，免去繁複的手動輸入提示詞，整合 Gemini 影像模型與 Firebase，一鍵生成多視角專業人像商品圖，支援自訂風格、背景、姿態等參數
 
 ## ☕ 請我喝杯咖啡
 
