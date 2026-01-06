@@ -24,7 +24,8 @@ const AppContent: React.FC = () => {
     profile, 
     setProfile, 
     vault, 
-    addVaultItem, 
+    addVaultItem,
+    updateVaultItem,
     deleteVaultItem, 
     memories, 
     addMemory, 
@@ -97,7 +98,12 @@ const AppContent: React.FC = () => {
                 />
               )}
               {activeState === AppState.VAULT && (
-                <VaultView items={vault} onAdd={addVaultItem} onDelete={deleteVaultItem} />
+                <VaultView 
+                  items={vault} 
+                  onAdd={addVaultItem} 
+                  onUpdate={updateVaultItem}
+                  onDelete={deleteVaultItem} 
+                />
               )}
               {activeState === AppState.STRATEGY && (
                 <StrategyChatView 
