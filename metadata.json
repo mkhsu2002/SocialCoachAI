@@ -1,0 +1,8 @@
+{
+  "name": "社群經營陪跑教練 - Social Coach AI",
+  "description": "專為繁體中文創作者設計的 1對1 社群經營陪跑教練，提供每日任務、演算法對策及素材管理功能。",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
