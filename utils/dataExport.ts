@@ -2,7 +2,7 @@
  * 資料匯出/匯入工具
  */
 
-import { UserProfile, ResourceItem, MemoryEntry, DayPlan } from '../types';
+import { UserProfile, ResourceItem, MemoryEntry, DayPlan, DailyInspiration } from '../types';
 import { 
   profileStorage, 
   vaultStorage, 
@@ -17,9 +17,68 @@ export interface ExportData {
   vault: ResourceItem[];
   memories: MemoryEntry[];
   schedule: DayPlan[];
+  dailyInspirations: Record<string, DailyInspiration[]>; // 以日期為 key 的每日靈感
+  inspirationDrafts: Record<string, string>; // 以索引為 key 的靈感草稿
 }
 
 const CURRENT_VERSION = '1.0.0';
+
+/**
+ * 取得所有每日靈感資料
+ */
+function getAllDailyInspirations(): Record<string, DailyInspiration[]> {
+  const result: Record<string, DailyInspiration[]> = {};
+  const prefix = 'daily_inspirations_';
+  
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(prefix)) {
+        const dateKey = key.replace(prefix, '');
+        const data = localStorage.getItem(key);
+        if (data) {
+          try {
+            const parsed = JSON.parse(data);
+            if (Array.isArray(parsed)) {
+              result[dateKey] = parsed;
+            }
+          } catch (error) {
+            console.warn(`解析每日靈感失敗 (${dateKey}):`, error);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('讀取每日靈感失敗:', error);
+  }
+  
+  return result;
+}
+
+/**
+ * 取得所有靈感草稿資料
+ */
+function getAllInspirationDrafts(): Record<string, string> {
+  const result: Record<string, string> = {};
+  const prefix = 'inspiration_draft_';
+  
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(prefix)) {
+        const indexKey = key.replace(prefix, '');
+        const data = localStorage.getItem(key);
+        if (data) {
+          result[indexKey] = data;
+        }
+      }
+    }
+  } catch (error) {
+    console.error('讀取靈感草稿失敗:', error);
+  }
+  
+  return result;
+}
 
 /**
  * 匯出所有資料
@@ -32,6 +91,8 @@ export function exportAllData(): ExportData {
     vault: vaultStorage.get(),
     memories: memoriesStorage.get(),
     schedule: scheduleStorage.get(),
+    dailyInspirations: getAllDailyInspirations(),
+    inspirationDrafts: getAllInspirationDrafts(),
   };
 }
 
@@ -96,6 +157,15 @@ export function validateImportData(data: unknown): data is ExportData {
     return false;
   }
 
+  // dailyInspirations 和 inspirationDrafts 是可選的（向後相容）
+  if (exportData.dailyInspirations !== undefined && typeof exportData.dailyInspirations !== 'object') {
+    return false;
+  }
+
+  if (exportData.inspirationDrafts !== undefined && typeof exportData.inspirationDrafts !== 'object') {
+    return false;
+  }
+
   return true;
 }
 
@@ -140,6 +210,34 @@ export function importData(data: ExportData): {
       scheduleStorage.set(data.schedule);
     } catch (error) {
       console.warn('匯入 Schedule 失敗:', error);
+    }
+
+    // 匯入每日靈感（如果有的話）
+    if (data.dailyInspirations && typeof data.dailyInspirations === 'object') {
+      try {
+        Object.entries(data.dailyInspirations).forEach(([dateKey, inspirations]) => {
+          if (Array.isArray(inspirations)) {
+            const storageKey = `daily_inspirations_${dateKey}`;
+            localStorage.setItem(storageKey, JSON.stringify(inspirations));
+          }
+        });
+      } catch (error) {
+        console.warn('匯入每日靈感失敗:', error);
+      }
+    }
+
+    // 匯入靈感草稿（如果有的話）
+    if (data.inspirationDrafts && typeof data.inspirationDrafts === 'object') {
+      try {
+        Object.entries(data.inspirationDrafts).forEach(([indexKey, draft]) => {
+          if (typeof draft === 'string') {
+            const storageKey = `inspiration_draft_${indexKey}`;
+            localStorage.setItem(storageKey, draft);
+          }
+        });
+      } catch (error) {
+        console.warn('匯入靈感草稿失敗:', error);
+      }
     }
 
     return {

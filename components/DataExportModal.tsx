@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useToast } from '../contexts/ToastContext';
 import { useAppData } from '../contexts/AppDataContext';
 import { downloadDataAsFile, importDataFromFile } from '../utils/dataExport';
@@ -61,16 +62,18 @@ const DataExportModal: React.FC<DataExportModalProps> = ({ isOpen, onClose }) =>
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+  // 使用 Portal 將 Modal 渲染到 body 最外層，避免被其他元素的 stacking context 影響
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
       {/* 背景遮罩 */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
+        style={{ zIndex: 9999 }}
       ></div>
       
       {/* Modal 內容 */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" style={{ zIndex: 10000 }}>
         {/* 關閉按鈕 */}
         <button
           onClick={onClose}
@@ -164,7 +167,8 @@ const DataExportModal: React.FC<DataExportModalProps> = ({ isOpen, onClose }) =>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
