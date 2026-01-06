@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, memo, useMemo, useRef } from 'react';
-import { ResourceItem } from '../types';
+import { ResourceItem, ResourceItemType, RESOURCE_TYPE_LABELS } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { useApiKey } from '../contexts/ApiKeyContext';
 import { searchVaultItems } from '../utils/searchUtils';
@@ -10,6 +10,7 @@ import { readFileContent, validateFileSize, getFileSizeText } from '../utils/fil
 import { handleError } from '../utils/errorHandler';
 import SearchInput from '../components/SearchInput';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ResourceItemModal from '../components/ResourceItemModal';
 
 interface VaultViewProps {
   items: ResourceItem[];
@@ -25,6 +26,8 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onUpdate, onDelete 
   const { apiKey } = useApiKey();
   const [isAdding, setIsAdding] = useState(false);
   const [inputMode, setInputMode] = useState<InputMode>('manual');
+  const [selectedItem, setSelectedItem] = useState<ResourceItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   // 手動輸入狀態
   const [newTitle, setNewTitle] = useState('');
@@ -71,10 +74,8 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onUpdate, onDelete 
   }, [newTitle, newContent, newType, onAdd, showToast]);
 
   const handleTypeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    if (value === 'inspiration' || value === 'asset' || value === 'character_design') {
-      setNewType(value);
-    }
+    const value = e.target.value as ResourceItemType;
+    setNewType(value);
   }, []);
 
   // 從 URL 抓取內容
@@ -179,16 +180,33 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onUpdate, onDelete 
       return;
     }
 
-    generatedItems.forEach(item => {
-      onAdd(item);
-    });
-
-    setGeneratedItems([]);
-    setTextInput('');
-    setInputMode('manual');
-    setIsAdding(false);
-    showToast(`成功加入 ${generatedItems.length} 個素材！`, 'success');
+    // 使用同步方式逐一加入，確保每個都成功
+    try {
+      generatedItems.forEach(item => {
+        onAdd(item);
+      });
+      const count = generatedItems.length;
+      setGeneratedItems([]);
+      setTextInput('');
+      setInputMode('manual');
+      setIsAdding(false);
+      showToast(`成功加入 ${count} 個素材！`, 'success');
+    } catch (error) {
+      showToast('加入素材時發生錯誤', 'error');
+    }
   }, [generatedItems, onAdd, showToast]);
+
+  // 打開素材詳細檢視
+  const handleViewItem = useCallback((item: ResourceItem) => {
+    setSelectedItem(item);
+    setIsModalOpen(true);
+  }, []);
+
+  // 關閉素材詳細檢視
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedItem(null);
+  }, []);
 
   // 重置表單
   const handleReset = useCallback(() => {
@@ -322,9 +340,9 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onUpdate, onDelete 
                     value={newType}
                     onChange={handleTypeChange}
                   >
-                    <option value="inspiration">經營靈感</option>
-                    <option value="asset">發文素材</option>
-                    <option value="character_design">角色設定/圖稿</option>
+                    {Object.entries(RESOURCE_TYPE_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -578,15 +596,12 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onUpdate, onDelete 
                             className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                             value={item.type}
                             onChange={(e) => {
-                              const value = e.target.value;
-                              if (value === 'inspiration' || value === 'asset' || value === 'character_design') {
-                                handleEditGeneratedItem(index, { type: value });
-                              }
+                              handleEditGeneratedItem(index, { type: e.target.value as ResourceItemType });
                             }}
                           >
-                            <option value="inspiration">經營靈感</option>
-                            <option value="asset">發文素材</option>
-                            <option value="character_design">角色設定/圖稿</option>
+                            {Object.entries(RESOURCE_TYPE_LABELS).map(([value, label]) => (
+                              <option key={value} value={value}>{label}</option>
+                            ))}
                           </select>
                         </div>
                         <div>
@@ -680,16 +695,39 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onUpdate, onDelete 
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredItems.map((item) => (
-            <div key={item.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-200 transition-all group">
+            <div 
+              key={item.id} 
+              onClick={() => handleViewItem(item)}
+              className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-200 transition-all group cursor-pointer"
+            >
               <div className="flex justify-between items-start mb-3">
-                <span className={`text-[10px] uppercase font-black px-2 py-1 rounded-md ${
-                  item.type === 'character_design' ? 'bg-purple-100 text-purple-700' :
-                  item.type === 'asset' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                }`}>
-                  {item.type === 'character_design' ? '角色設定' : item.type === 'asset' ? '發文素材' : '經營靈感'}
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`text-[10px] uppercase font-black px-2 py-1 rounded-md ${
+                    item.type === 'character_design' ? 'bg-purple-100 text-purple-700' :
+                    item.type === 'asset' ? 'bg-green-100 text-green-700' :
+                    item.type === 'story' ? 'bg-blue-100 text-blue-700' :
+                    item.type === 'quote' ? 'bg-amber-100 text-amber-700' :
+                    item.type === 'tutorial' ? 'bg-indigo-100 text-indigo-700' :
+                    item.type === 'behind_scenes' ? 'bg-pink-100 text-pink-700' :
+                    item.type === 'interaction' ? 'bg-cyan-100 text-cyan-700' :
+                    item.type === 'promotion' ? 'bg-red-100 text-red-700' :
+                    item.type === 'news' ? 'bg-yellow-100 text-yellow-700' :
+                    item.type === 'review' ? 'bg-teal-100 text-teal-700' :
+                    'bg-slate-100 text-slate-700'
+                  }`}>
+                    {RESOURCE_TYPE_LABELS[item.type]}
+                  </span>
+                  {item.isUsed && (
+                    <span className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-md font-medium">
+                      <i className="fa-solid fa-check-circle mr-1"></i>已使用
+                    </span>
+                  )}
+                </div>
                 <button 
-                  onClick={() => onDelete(item.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(item.id);
+                  }}
                   className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                 >
                   <i className="fa-solid fa-trash-can"></i>
@@ -702,6 +740,15 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onUpdate, onDelete 
           ))}
         </div>
       )}
+
+      {/* 素材詳細檢視 Modal */}
+      <ResourceItemModal
+        item={selectedItem}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onUpdate={onUpdate}
+        onDelete={onDelete}
+      />
     </div>
   );
 };

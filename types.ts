@@ -8,12 +8,43 @@ export interface UserProfile {
   additionalNotes: string; // 補充說明：可填寫更多粉專關聯的作品或品牌的描述
 }
 
+export type ResourceItemType = 
+  | 'inspiration'      // 經營靈感
+  | 'asset'            // 發文素材
+  | 'character_design'  // 角色設定/圖稿
+  | 'story'            // 故事/劇情
+  | 'quote'            // 金句/名言
+  | 'tutorial'         // 教學/乾貨
+  | 'behind_scenes'    // 幕後花絮
+  | 'interaction'      // 互動內容
+  | 'promotion'        // 推廣/活動
+  | 'news'             // 新聞/時事
+  | 'review'           // 評價/心得
+  | 'other';           // 其他
+
+export const RESOURCE_TYPE_LABELS: Record<ResourceItemType, string> = {
+  inspiration: '經營靈感',
+  asset: '發文素材',
+  character_design: '角色設定/圖稿',
+  story: '故事/劇情',
+  quote: '金句/名言',
+  tutorial: '教學/乾貨',
+  behind_scenes: '幕後花絮',
+  interaction: '互動內容',
+  promotion: '推廣/活動',
+  news: '新聞/時事',
+  review: '評價/心得',
+  other: '其他'
+};
+
 export interface ResourceItem {
   id: string;
-  type: 'inspiration' | 'asset' | 'character_design';
+  type: ResourceItemType;
   title: string;
   content: string;
   createdAt: string;
+  isUsed?: boolean; // 是否已使用
+  usedAt?: string;  // 使用時間
 }
 
 export interface MemoryEntry {

@@ -1,4 +1,4 @@
-import { UserProfile, DayPlan, DailyInspiration, MemoryEntry, ResourceItem, DayOfWeek, DAY_ORDER } from '../types';
+import { UserProfile, DayPlan, DailyInspiration, MemoryEntry, ResourceItem, ResourceItemType, DayOfWeek, DAY_ORDER } from '../types';
 
 /**
  * 型別守衛函數
@@ -64,6 +64,11 @@ export function isMemoryEntry(obj: unknown): obj is MemoryEntry {
   );
 }
 
+const VALID_RESOURCE_TYPES: ResourceItemType[] = [
+  'inspiration', 'asset', 'character_design', 'story', 'quote',
+  'tutorial', 'behind_scenes', 'interaction', 'promotion', 'news', 'review', 'other'
+];
+
 export function isResourceItem(obj: unknown): obj is ResourceItem {
   if (!obj || typeof obj !== 'object') return false;
   const item = obj as Record<string, unknown>;
@@ -72,7 +77,9 @@ export function isResourceItem(obj: unknown): obj is ResourceItem {
     typeof item.title === 'string' &&
     typeof item.content === 'string' &&
     typeof item.createdAt === 'string' &&
-    (item.type === 'inspiration' || item.type === 'asset' || item.type === 'character_design')
+    VALID_RESOURCE_TYPES.includes(item.type as ResourceItemType) &&
+    (item.isUsed === undefined || typeof item.isUsed === 'boolean') &&
+    (item.usedAt === undefined || typeof item.usedAt === 'string')
   );
 }
 
