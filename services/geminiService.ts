@@ -2,7 +2,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, DailyMission, ResourceItem, MemoryEntry, DayPlan, DailyInspiration } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// 建立 AI 實例的函數，接受 API Key 作為參數
+function createAIInstance(apiKey: string | null): GoogleGenAI {
+  const key = apiKey || process.env.API_KEY || process.env.GEMINI_API_KEY || '';
+  if (!key) {
+    throw new Error('Gemini API Key 未設定，請先設定 API Key');
+  }
+  return new GoogleGenAI({ apiKey: key });
+}
 
 // 既有的單日任務 Schema (保留相容性)
 const MISSION_SCHEMA = {
@@ -58,7 +65,8 @@ function getMemoryContext(memories: MemoryEntry[]): string {
 }
 
 // 產生一週課表
-export async function generateWeeklyPlan(profile: UserProfile): Promise<DayPlan[]> {
+export async function generateWeeklyPlan(profile: UserProfile, apiKey: string | null): Promise<DayPlan[]> {
+  const ai = createAIInstance(apiKey);
   const systemInstruction = `你是一位專業的社群經營教練。請根據用戶資料，規劃「一週內容排程表」。
 用戶定位：${profile.positioning}
 目標受眾：${profile.targetAudience}
@@ -92,8 +100,10 @@ export async function generateWeeklyPlan(profile: UserProfile): Promise<DayPlan[
 export async function generateDailyInspirations(
   profile: UserProfile,
   dayPlan: DayPlan,
-  memories: MemoryEntry[]
+  memories: MemoryEntry[],
+  apiKey: string | null
 ): Promise<DailyInspiration[]> {
+  const ai = createAIInstance(apiKey);
   const memoryContext = getMemoryContext(memories);
   
   const systemInstruction = `你是一位社群小編靈感助手。
@@ -125,8 +135,10 @@ ${memoryContext}
 export async function generateDailyMission(
   profile: UserProfile, 
   vault: ResourceItem[],
-  memories: MemoryEntry[]
+  memories: MemoryEntry[],
+  apiKey: string | null
 ): Promise<DailyMission> {
+  const ai = createAIInstance(apiKey);
   // ... (舊代碼保持不變，作為 fallback 或特定詳細生成用途)
   // 為了節省空間，這裡省略重複代碼，實際應用中應保留
    const vaultContext = vault.length > 0 
@@ -164,8 +176,10 @@ ${memoryContext}
 export async function getGeneralCoaching(
   profile: UserProfile, 
   message: string,
-  memories: MemoryEntry[]
+  memories: MemoryEntry[],
+  apiKey: string | null
 ): Promise<string> {
+  const ai = createAIInstance(apiKey);
   // ... (保持不變)
     const memoryContext = getMemoryContext(memories);
   const systemInstruction = `你是一位親切、專業且具備實戰感的 1對1 社群經營陪跑教練。

@@ -1,6 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { AppState } from '../types';
+import { useApiKey } from '../contexts/ApiKeyContext';
+import ApiKeySetupModal from './ApiKeySetupModal';
 
 interface SidebarProps {
   activeState: AppState;
@@ -9,6 +11,9 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ activeState, onNavigate, userName }) => {
+  const { isApiKeySet } = useApiKey();
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  
   const navItems = [
     { id: AppState.DASHBOARD, label: '每日任務', icon: 'fa-calendar-day' },
     { id: AppState.SCHEDULE_SETUP, label: '經營課表', icon: 'fa-table-list' },
@@ -44,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeState, onNavigate, userName }) 
         ))}
       </nav>
 
-      <div className="p-4 bg-slate-50 border-t border-slate-100">
+      <div className="p-4 bg-slate-50 border-t border-slate-100 space-y-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
             <i className="fa-solid fa-user"></i>
@@ -54,7 +59,28 @@ const Sidebar: React.FC<SidebarProps> = ({ activeState, onNavigate, userName }) 
             <p className="text-xs text-slate-500">已準備好突破！</p>
           </div>
         </div>
+        
+        {/* API Key 設定按鈕 */}
+        <button
+          onClick={() => setShowApiKeyModal(true)}
+          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
+            isApiKeySet 
+              ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100' 
+              : 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'
+          }`}
+        >
+          <i className={`fa-solid ${isApiKeySet ? 'fa-check-circle' : 'fa-key'}`}></i>
+          <span className="font-medium">
+            {isApiKeySet ? 'API Key 已設定' : '設定 API Key'}
+          </span>
+        </button>
       </div>
+
+      {/* API Key 設定 Modal */}
+      <ApiKeySetupModal 
+        isOpen={showApiKeyModal} 
+        onClose={() => setShowApiKeyModal(false)}
+      />
     </aside>
   );
 };

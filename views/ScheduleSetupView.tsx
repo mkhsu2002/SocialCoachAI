@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { UserProfile, DayPlan } from '../types';
+import { useApiKey } from '../contexts/ApiKeyContext';
 import { generateWeeklyPlan } from '../services/geminiService';
 
 interface ScheduleSetupViewProps {
@@ -10,6 +11,7 @@ interface ScheduleSetupViewProps {
 }
 
 const ScheduleSetupView: React.FC<ScheduleSetupViewProps> = ({ profile, schedule, onSaveSchedule }) => {
+  const { apiKey } = useApiKey();
   const [currentSchedule, setCurrentSchedule] = useState<DayPlan[]>(schedule);
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -24,13 +26,13 @@ const ScheduleSetupView: React.FC<ScheduleSetupViewProps> = ({ profile, schedule
   const handleGenerate = async () => {
     setLoading(true);
     try {
-      const plan = await generateWeeklyPlan(profile);
+      const plan = await generateWeeklyPlan(profile, apiKey);
       // Sort plan based on dayOrder
       const sortedPlan = plan.sort((a, b) => dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day));
       setCurrentSchedule(sortedPlan);
       setIsEditing(true); // 產生後預設進入編輯模式讓用戶確認
     } catch (error) {
-      alert("生成失敗，請稍後再試");
+      alert("生成失敗，請檢查 API Key 是否已設定。");
     } finally {
       setLoading(false);
     }

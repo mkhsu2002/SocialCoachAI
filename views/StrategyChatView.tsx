@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { UserProfile, MemoryEntry } from '../types';
+import { useApiKey } from '../contexts/ApiKeyContext';
 import { getGeneralCoaching } from '../services/geminiService';
 
 interface Message {
@@ -15,6 +16,7 @@ interface StrategyChatViewProps {
 }
 
 const StrategyChatView: React.FC<StrategyChatViewProps> = ({ profile, memories, onAddMemory }) => {
+  const { apiKey } = useApiKey();
   const [messages, setMessages] = useState<Message[]>([
     { role: 'coach', text: `嘿 ${profile.fanPageName}！我是你的專屬陪跑教練。今天有什麼經營上的困擾嗎？✨` }
   ]);
@@ -35,10 +37,10 @@ const StrategyChatView: React.FC<StrategyChatViewProps> = ({ profile, memories, 
     setLoading(true);
 
     try {
-      const reply = await getGeneralCoaching(profile, userMsg, memories);
+      const reply = await getGeneralCoaching(profile, userMsg, memories, apiKey);
       setMessages(prev => [...prev, { role: 'coach', text: reply }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'coach', text: "教練現在有點忙，請稍後再試！" }]);
+      setMessages(prev => [...prev, { role: 'coach', text: "教練現在有點忙，請檢查 API Key 是否已設定。" }]);
     } finally {
       setLoading(false);
     }

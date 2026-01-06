@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { UserProfile, DayPlan, DailyInspiration, MemoryEntry, AppState } from '../types';
+import { useApiKey } from '../contexts/ApiKeyContext';
 import { generateDailyInspirations } from '../services/geminiService';
 
 interface DashboardViewProps {
@@ -12,6 +13,7 @@ interface DashboardViewProps {
 }
 
 const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memories, onNavigate, onAddMemory }) => {
+  const { apiKey } = useApiKey();
   const [inspirations, setInspirations] = useState<DailyInspiration[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,10 +40,10 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
     setLoading(true);
     setError(null);
     try {
-      const data = await generateDailyInspirations(profile, todayPlan, memories);
+      const data = await generateDailyInspirations(profile, todayPlan, memories, apiKey);
       setInspirations(data);
     } catch (err) {
-      setError("靈感生成失敗，請檢查網路連線。");
+      setError("靈感生成失敗，請檢查 API Key 是否已設定。");
     } finally {
       setLoading(false);
     }

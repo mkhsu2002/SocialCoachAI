@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { UserProfile } from '../types';
+import { useApiKey } from '../contexts/ApiKeyContext';
+import ApiKeySetupModal from '../components/ApiKeySetupModal';
 
 interface OnboardingViewProps {
   onSave: (profile: UserProfile) => void;
@@ -8,6 +10,9 @@ interface OnboardingViewProps {
 }
 
 const OnboardingView: React.FC<OnboardingViewProps> = ({ onSave, initialProfile }) => {
+  const { isApiKeySet } = useApiKey();
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  
   // 預設值：方便測試使用
   const [profile, setProfile] = useState<UserProfile>(initialProfile || {
     fanPageName: '幻想小說實驗室',
@@ -24,6 +29,23 @@ const OnboardingView: React.FC<OnboardingViewProps> = ({ onSave, initialProfile 
 
   return (
     <div className="max-w-2xl mx-auto py-12 px-4">
+      {/* API Key 設定按鈕 */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => setShowApiKeyModal(true)}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+            isApiKeySet 
+              ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100' 
+              : 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'
+          }`}
+        >
+          <i className={`fa-solid ${isApiKeySet ? 'fa-check-circle' : 'fa-key'}`}></i>
+          <span className="text-sm font-medium">
+            {isApiKeySet ? 'API Key 已設定' : '設定 API Key'}
+          </span>
+        </button>
+      </div>
+
       <div className="text-center mb-10">
         <h2 className="text-3xl font-bold text-slate-900">啟動你的專屬陪跑計劃 🚀</h2>
         <p className="text-slate-600 mt-2">請填寫基本資料，教練將為你量身打造社群突破策略。</p>
@@ -95,6 +117,12 @@ const OnboardingView: React.FC<OnboardingViewProps> = ({ onSave, initialProfile 
           儲存並開始教練陪跑
         </button>
       </form>
+
+      {/* API Key 設定 Modal */}
+      <ApiKeySetupModal 
+        isOpen={showApiKeyModal} 
+        onClose={() => setShowApiKeyModal(false)}
+      />
     </div>
   );
 };

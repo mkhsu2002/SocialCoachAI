@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppState, UserProfile, ResourceItem, MemoryEntry, DayPlan } from './types';
+import { ApiKeyProvider } from './contexts/ApiKeyContext';
 import Sidebar from './components/Sidebar';
 import OnboardingView from './views/OnboardingView';
 import DashboardView from './views/DashboardView';
@@ -90,16 +91,17 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      {profile && (
-        <Sidebar 
-          activeState={activeState} 
-          onNavigate={setActiveState} 
-          userName={profile.fanPageName}
-        />
-      )}
-      
-      <main className="flex-1 overflow-x-hidden pb-20 md:pb-0">
+    <ApiKeyProvider>
+      <div className="flex min-h-screen bg-slate-50">
+        {profile && (
+          <Sidebar 
+            activeState={activeState} 
+            onNavigate={setActiveState} 
+            userName={profile.fanPageName}
+          />
+        )}
+        
+        <main className="flex-1 overflow-x-hidden pb-20 md:pb-0">
         {activeState === AppState.ONBOARDING && (
           <OnboardingView onSave={handleSaveProfile} initialProfile={profile || undefined} />
         )}
@@ -174,7 +176,8 @@ const App: React.FC = () => {
           <span className="text-[10px]">設定</span>
         </button>
       </nav>
-    </div>
+      </div>
+    </ApiKeyProvider>
   );
 };
 
