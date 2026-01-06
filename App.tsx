@@ -173,7 +173,7 @@ const AppContent: React.FC = () => {
             . All rights reserved.
           </p>
           <p className="text-xs text-slate-400">
-            Version <span className="font-medium text-slate-500">v0.1</span>
+            Version <span className="font-medium text-slate-500">v0.3</span>
           </p>
         </div>
       </footer>

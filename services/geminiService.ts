@@ -198,6 +198,7 @@ ${profile.additionalNotes ? `- 補充說明：${profile.additionalNotes}` : ''}
 export async function generateDailyInspirations(
   profile: UserProfile,
   dayPlan: DayPlan,
+  vault: ResourceItem[],
   memories: MemoryEntry[],
   apiKey: string | null,
   forceRefresh: boolean = false
@@ -207,6 +208,7 @@ export async function generateDailyInspirations(
     type: dayPlan.type,
     purpose: dayPlan.purpose,
     positioning: profile.positioning,
+    vaultCount: vault.length,
     memoryCount: memories.length
   });
 
@@ -233,13 +235,30 @@ export async function generateDailyInspirations(
       const ai = createAIInstance(apiKey);
       const memoryContext = getMemoryContext(memories);
       
+      // 準備素材庫內容
+      const vaultContext = vault.length > 0
+        ? `目前的素材庫內容（請優先參考這些素材來生成靈感）：\n${vault
+            .filter(item => !item.isUsed) // 只顯示未使用的素材
+            .map(v => `- [${v.type}] ${v.title}: ${v.content}`)
+            .join('\n')}`
+        : "素材庫目前為空，請根據用戶定位和課表生成靈感。";
+      
       const systemInstruction = `你是一位社群小編靈感助手。
 今天是 ${dayPlan.day}。
 根據用戶的每週課表，今天的內容類型是：「${dayPlan.type}」，目的是：「${dayPlan.purpose}」。
 用戶定位：${profile.positioning}。
+
+${vaultContext}
+
 ${memoryContext}
 
-請提供 3 個具體、有創意的發文靈感，讓用戶可以擇一執行。`;
+請提供 3 個具體、有創意的發文靈感，讓用戶可以擇一執行。
+如果素材庫中有適合的素材，請優先使用這些素材來生成靈感。
+每個靈感應該：
+1. 明確對應今天的內容類型和目的
+2. 如果素材庫有相關素材，應該結合素材內容
+3. 提供具體的發文建議（Hook、格式建議）
+4. 確保靈感具有可執行性和吸引力`;
 
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",

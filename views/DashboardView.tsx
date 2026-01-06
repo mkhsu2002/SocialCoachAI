@@ -1,22 +1,25 @@
 
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
-import { UserProfile, DayPlan, DailyInspiration, MemoryEntry, AppState, DayOfWeek } from '../types';
+import { UserProfile, DayPlan, DailyInspiration, MemoryEntry, ResourceItem, AppState, DayOfWeek } from '../types';
 import { useApiKey } from '../contexts/ApiKeyContext';
 import { useToast } from '../contexts/ToastContext';
 import { generateDailyInspirations } from '../services/geminiService';
 import { handleError } from '../utils/errorHandler';
 import { getDailyInspirations, setDailyInspirations } from '../utils/dailyInspirationsStorage';
+import { getInspirationDraft, setInspirationDraft, clearInspirationDraft } from '../utils/inspirationDraftsStorage';
 import LoadingSpinner from '../components/LoadingSpinner';
+import InspirationEditorModal from '../components/InspirationEditorModal';
 
 interface DashboardViewProps {
   profile: UserProfile;
   schedule: DayPlan[];
   memories: MemoryEntry[];
+  vault: ResourceItem[];
   onNavigate: (state: AppState) => void;
   onAddMemory: (content: string, category: MemoryEntry['category']) => void;
 }
 
-const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memories, onNavigate, onAddMemory }) => {
+const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memories, vault, onNavigate, onAddMemory }) => {
   const { apiKey } = useApiKey();
   const { showToast } = useToast();
   const [inspirations, setInspirations] = useState<DailyInspiration[]>([]);
@@ -24,6 +27,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
   const [error, setError] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
   const [todayPlan, setTodayPlan] = useState<DayPlan | null>(null);
+  const [selectedInspiration, setSelectedInspiration] = useState<DailyInspiration | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [draftContents, setDraftContents] = useState<Record<number, string>>({});
 
   // 取得今天星期幾 (Monday, Tuesday...) - 使用 useMemo 快取
   const todayDayName = useMemo<DayOfWeek>(() => {
@@ -39,11 +45,22 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
     }
   }, [schedule, todayDayName]);
 
-  // 載入今日已儲存的靈感
+  // 載入今日已儲存的靈感和草稿
   useEffect(() => {
     const savedInspirations = getDailyInspirations();
     if (savedInspirations.length > 0) {
       setInspirations(savedInspirations);
+      // 載入所有草稿
+      const drafts: Record<number, string> = {};
+      savedInspirations.forEach((_, index) => {
+        const draft = getInspirationDraft(index);
+        if (draft) {
+          drafts[index] = draft;
+        }
+      });
+      if (Object.keys(drafts).length > 0) {
+        setDraftContents(drafts);
+      }
     }
   }, []);
 
@@ -56,7 +73,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
       if (forceRefresh) {
         setInspirations([]);
       }
-      const data = await generateDailyInspirations(profile, todayPlan, memories, apiKey, forceRefresh);
+      const data = await generateDailyInspirations(profile, todayPlan, vault, memories, apiKey, forceRefresh);
       setInspirations(data);
       // 儲存到 localStorage，避免切換畫面時消失
       setDailyInspirations(data);
@@ -206,10 +223,23 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
                              </div>
                         </div>
                         <button 
-                            onClick={() => onAddMemory(`採用靈感：${insp.idea}`, 'insight')}
-                            className="mt-6 w-full py-2 border border-slate-200 rounded-lg text-slate-600 text-sm hover:bg-slate-50 hover:text-indigo-600 transition-colors"
+                            onClick={() => {
+                              setSelectedInspiration(insp);
+                              // 載入草稿（如果有的話）
+                              const draft = getInspirationDraft(idx);
+                              if (draft && !draftContents[idx]) {
+                                setDraftContents(prev => ({ ...prev, [idx]: draft }));
+                              }
+                              setIsEditorOpen(true);
+                            }}
+                            className="mt-6 w-full py-2 border border-slate-200 rounded-lg text-slate-600 text-sm hover:bg-slate-50 hover:text-indigo-600 transition-colors font-medium"
                         >
-                            <i className="fa-solid fa-check mr-2"></i>決定做這個
+                            <i className="fa-solid fa-check mr-2"></i>決定採用
+                            {draftContents[idx] && (
+                              <span className="ml-2 text-xs text-indigo-500">
+                                <i className="fa-solid fa-file-lines"></i> 有草稿
+                              </span>
+                            )}
                         </button>
                     </div>
                 ))}
@@ -448,6 +478,52 @@ const DashboardView: React.FC<DashboardViewProps> = ({ profile, schedule, memori
             </div>
           </div>
         </div>
+      )}
+
+      {/* 靈感編輯 Modal */}
+      {selectedInspiration && (
+        <InspirationEditorModal
+          inspiration={selectedInspiration}
+          isOpen={isEditorOpen}
+          draftContent={(() => {
+            const index = inspirations.findIndex(insp => insp === selectedInspiration);
+            return index !== -1 ? draftContents[index] : undefined;
+          })()}
+          onClose={() => {
+            setIsEditorOpen(false);
+            setSelectedInspiration(null);
+          }}
+          onSave={(content) => {
+            if (selectedInspiration) {
+              const index = inspirations.findIndex(insp => insp === selectedInspiration);
+              if (index !== -1) {
+                setInspirationDraft(index, content);
+                setDraftContents(prev => ({ ...prev, [index]: content }));
+                showToast('草稿已儲存', 'success');
+              }
+            }
+          }}
+          onPost={(content) => {
+            if (selectedInspiration) {
+              const index = inspirations.findIndex(insp => insp === selectedInspiration);
+              if (index !== -1) {
+                // 將內容轉移到成長筆記
+                const memoryContent = `【已貼文】${selectedInspiration.idea}\n\n${content}`;
+                onAddMemory(memoryContent, 'milestone');
+                
+                // 清除草稿
+                clearInspirationDraft(index);
+                setDraftContents(prev => {
+                  const newDrafts = { ...prev };
+                  delete newDrafts[index];
+                  return newDrafts;
+                });
+                
+                showToast('已標記為貼文，內容已加入成長筆記', 'success');
+              }
+            }
+          }}
+        />
       )}
     </div>
   );

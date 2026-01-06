@@ -745,6 +745,7 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onAddMultiple, onUp
         onClose={handleCloseModal}
         onUpdate={onUpdate}
         onDelete={onDelete}
+        onAdd={onAdd}
       />
     </div>
   );

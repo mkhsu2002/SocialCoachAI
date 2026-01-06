@@ -33,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeState, onNavigate, userName }) 
         </h1>
         <div className="flex items-center gap-2 mt-1">
           <p className="text-xs text-slate-500">為 1,000+ 創作者而生</p>
-          <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-medium">v0.1</span>
+          <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-medium">v0.3</span>
         </div>
       </div>
       

@@ -2,7 +2,7 @@
   <h1>🚀 社群陪跑教練</h1>
   <p>為 1,000+ 創作者而生的智能社群經營助手</p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.1-blue" alt="Version" />
+    <img src="https://img.shields.io/badge/version-0.3-blue" alt="Version" />
     <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
     <img src="https://img.shields.io/badge/React-19.2.3-blue" alt="React" />
     <img src="https://img.shields.io/badge/TypeScript-5.8.2-blue" alt="TypeScript" />

@@ -23,21 +23,23 @@
 const schedule = await generateWeeklyPlan(profile, apiKey);
 ```
 
-#### `generateDailyInspirations(profile, dayPlan, memories, apiKey)`
+#### `generateDailyInspirations(profile, dayPlan, vault, memories, apiKey, forceRefresh?)`
 
-根據當日課表產生 3 個靈感。
+根據當日課表產生 3 個靈感，會參考素材庫內容來生成。
 
 **參數：**
 - `profile: UserProfile` - 使用者資料
 - `dayPlan: DayPlan` - 當日課表
+- `vault: ResourceItem[]` - 素材庫內容（會優先參考未使用的素材）
 - `memories: MemoryEntry[]` - 記憶資料
 - `apiKey: string | null` - Gemini API Key
+- `forceRefresh?: boolean` - 是否強制刷新（跳過快取），預設為 `false`
 
 **回傳：** `Promise<DailyInspiration[]>`
 
 **範例：**
 ```typescript
-const inspirations = await generateDailyInspirations(profile, todayPlan, memories, apiKey);
+const inspirations = await generateDailyInspirations(profile, todayPlan, vault, memories, apiKey, true);
 ```
 
 #### `getGeneralCoaching(profile, message, memories, apiKey)`
