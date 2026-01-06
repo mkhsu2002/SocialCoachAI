@@ -29,7 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeState, onNavigate, userName }) 
     <aside className="w-64 bg-white border-r border-slate-200 h-screen sticky top-0 flex flex-col hidden md:flex">
       <div className="p-6 border-b border-slate-100">
         <h1 className="text-xl font-bold text-indigo-600 flex items-center gap-2">
-          <i className="fa-solid fa-rocket"></i> 社群AI陪跑教練
+          <i className="fa-solid fa-rocket"></i> 社群陪跑教練
         </h1>
         <div className="flex items-center gap-2 mt-1">
           <p className="text-xs text-slate-500">為 1,000+ 創作者而生</p>
