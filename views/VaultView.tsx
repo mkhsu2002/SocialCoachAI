@@ -15,13 +15,14 @@ import ResourceItemModal from '../components/ResourceItemModal';
 interface VaultViewProps {
   items: ResourceItem[];
   onAdd: (item: Omit<ResourceItem, 'id' | 'createdAt'>) => void;
+  onAddMultiple: (items: Omit<ResourceItem, 'id' | 'createdAt'>[]) => void;
   onUpdate: (id: string, updates: Partial<ResourceItem>) => void;
   onDelete: (id: string) => void;
 }
 
 type InputMode = 'manual' | 'text' | 'file' | 'url' | 'google' | 'notebooklm';
 
-const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onUpdate, onDelete }) => {
+const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onAddMultiple, onUpdate, onDelete }) => {
   const { showToast } = useToast();
   const { apiKey } = useApiKey();
   const [isAdding, setIsAdding] = useState(false);
@@ -180,21 +181,17 @@ const VaultView: React.FC<VaultViewProps> = ({ items, onAdd, onUpdate, onDelete 
       return;
     }
 
-    // 使用同步方式逐一加入，確保每個都成功
+    // 使用批量加入方法，一次性加入所有素材
     try {
-      generatedItems.forEach(item => {
-        onAdd(item);
-      });
-      const count = generatedItems.length;
+      onAddMultiple(generatedItems);
       setGeneratedItems([]);
       setTextInput('');
       setInputMode('manual');
       setIsAdding(false);
-      showToast(`成功加入 ${count} 個素材！`, 'success');
     } catch (error) {
       showToast('加入素材時發生錯誤', 'error');
     }
-  }, [generatedItems, onAdd, showToast]);
+  }, [generatedItems, onAddMultiple, showToast]);
 
   // 打開素材詳細檢視
   const handleViewItem = useCallback((item: ResourceItem) => {

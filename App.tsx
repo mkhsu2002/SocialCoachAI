@@ -25,6 +25,7 @@ const AppContent: React.FC = () => {
     setProfile, 
     vault, 
     addVaultItem,
+    addVaultItems,
     updateVaultItem,
     deleteVaultItem, 
     memories, 
@@ -100,7 +101,8 @@ const AppContent: React.FC = () => {
               {activeState === AppState.VAULT && (
                 <VaultView 
                   items={vault} 
-                  onAdd={addVaultItem} 
+                  onAdd={addVaultItem}
+                  onAddMultiple={addVaultItems}
                   onUpdate={updateVaultItem}
                   onDelete={deleteVaultItem} 
                 />

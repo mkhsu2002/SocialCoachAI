@@ -18,6 +18,7 @@ interface AppDataContextType {
   // Vault
   vault: ResourceItem[];
   addVaultItem: (item: Omit<ResourceItem, 'id' | 'createdAt'>) => void;
+  addVaultItems: (items: Omit<ResourceItem, 'id' | 'createdAt'>[]) => void;
   updateVaultItem: (id: string, updates: Partial<ResourceItem>) => void;
   deleteVaultItem: (id: string) => void;
   
@@ -94,15 +95,41 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       createdAt: new Date().toISOString(),
     };
     try {
-      const updatedVault = [newItem, ...vault];
-      vaultStorage.set(updatedVault);
-      setVaultState(updatedVault);
+      // 使用函數式更新，確保狀態正確
+      setVaultState(prevVault => {
+        const updatedVault = [newItem, ...prevVault];
+        vaultStorage.set(updatedVault);
+        return updatedVault;
+      });
     } catch (error) {
       console.error('新增 Vault 項目失敗:', error);
       showToast('新增素材失敗', 'error');
       throw error;
     }
-  }, [vault]);
+  }, [showToast]);
+
+  // 批量加入多個 Vault 項目
+  const addVaultItems = useCallback((items: Omit<ResourceItem, 'id' | 'createdAt'>[]) => {
+    if (items.length === 0) return;
+    
+    try {
+      setVaultState(prevVault => {
+        const newItems: ResourceItem[] = items.map(item => ({
+          ...item,
+          id: generateId(),
+          createdAt: new Date().toISOString(),
+        }));
+        const updatedVault = [...newItems, ...prevVault];
+        vaultStorage.set(updatedVault);
+        return updatedVault;
+      });
+      showToast(`成功加入 ${items.length} 個素材！`, 'success');
+    } catch (error) {
+      console.error('批量新增 Vault 項目失敗:', error);
+      showToast('批量新增素材失敗', 'error');
+      throw error;
+    }
+  }, [showToast]);
 
   const updateVaultItem = useCallback((id: string, updates: Partial<ResourceItem>) => {
     try {
@@ -225,6 +252,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     updateProfile,
     vault,
     addVaultItem,
+    addVaultItems,
     updateVaultItem,
     deleteVaultItem,
     memories,
