@@ -2,7 +2,7 @@
   <h1>🚀 社群陪跑教練</h1>
   <p>為 1,000+ 創作者而生的智能社群經營助手</p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.3-blue" alt="Version" />
+    <img src="https://img.shields.io/badge/version-0.4-blue" alt="Version" />
     <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
     <img src="https://img.shields.io/badge/React-19.2.3-blue" alt="React" />
     <img src="https://img.shields.io/badge/TypeScript-5.8.2-blue" alt="TypeScript" />
@@ -68,6 +68,16 @@
 - **目標區域設定**：台灣、香港、澳門等，客製化 AI 內容生成
 - **補充說明**：可填寫更多粉專關聯的作品或品牌描述
 - **小編人設提示詞**：設定小編的寫作風格、語氣、特色，AI 生成貼文時會參考此設定
+
+## 🆕 v0.4 版本新功能
+
+- 🎨 **小編提示詞模板系統**：提供 10 個預設模板，涵蓋不同粉專類別與語氣風格，快速建立專業的小編人設
+- 📋 **模板選擇器**：智能篩選與搜尋功能，輕鬆找到適合的模板
+- 🤝 **貢獻規範完善**：新增完整的 CONTRIBUTING.md，引導開發者貢獻代碼
+- 📝 **GitHub 模板**：Issue 與 PR 模板，規範化問題回報與功能建議流程
+- 🚀 **部署指南**：詳細的 Cloudflare Pages 部署說明
+- 📊 **功能評估報告**：四個新功能的技術可行性分析
+- 🔧 **開發工具增強**：新增 pre-check 腳本，一鍵檢查代碼品質
 
 ## 🆕 v0.3 版本新功能
 
