@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { UserProfile } from '../types';
 import { useApiKey } from '../contexts/ApiKeyContext';
 import ApiKeySetupModal from '../components/ApiKeySetupModal';
+import PersonaTemplateSelector from '../components/PersonaTemplateSelector';
 
 interface OnboardingViewProps {
   onSave: (profile: UserProfile) => void;
@@ -12,6 +13,7 @@ interface OnboardingViewProps {
 const OnboardingView: React.FC<OnboardingViewProps> = ({ onSave, initialProfile }) => {
   const { isApiKeySet } = useApiKey();
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   
   // 預設值：系統原始預設值
   const [profile, setProfile] = useState<UserProfile>(initialProfile || {
@@ -130,9 +132,19 @@ const OnboardingView: React.FC<OnboardingViewProps> = ({ onSave, initialProfile 
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            7. 小編人設提示詞 <span className="text-xs text-slate-500 font-normal">(選填)</span>
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-sm font-medium text-slate-700">
+              7. 小編人設提示詞 <span className="text-xs text-slate-500 font-normal">(選填)</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowTemplateSelector(true)}
+              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1 transition-colors"
+            >
+              <i className="fa-solid fa-magic"></i>
+              從模板選擇
+            </button>
+          </div>
           <textarea
             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none h-32"
             placeholder="描述你的小編寫作風格、語氣、特色等（例如：親切幽默、專業嚴謹、輕鬆活潑、文青風格、使用特定口頭禪等）"
@@ -157,6 +169,31 @@ const OnboardingView: React.FC<OnboardingViewProps> = ({ onSave, initialProfile 
         isOpen={showApiKeyModal} 
         onClose={() => setShowApiKeyModal(false)}
       />
+
+      {/* 模板選擇器 Modal */}
+      {showTemplateSelector && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* 背景遮罩 */}
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowTemplateSelector(false)}
+          ></div>
+          
+          {/* Modal 內容 */}
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 overflow-y-auto flex-1">
+              <PersonaTemplateSelector
+                onSelect={(template) => {
+                  setProfile({ ...profile, copywriterPersona: template });
+                  setShowTemplateSelector(false);
+                }}
+                currentValue={profile.copywriterPersona}
+                onClose={() => setShowTemplateSelector(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

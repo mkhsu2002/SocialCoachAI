@@ -111,3 +111,64 @@ export enum AppState {
   STRATEGY = 'STRATEGY',
   MEMORY = 'MEMORY'
 }
+
+/**
+ * 粉專類別
+ */
+export type FanPageCategory = 
+  | 'content_creation'  // 內容創作（小說、漫畫、影評、知識分享）
+  | 'personal_brand'    // 個人品牌（成長、生活、旅遊、健身）
+  | 'business_brand'    // 商業品牌（電商、服務、行銷）
+  | 'interest_community' // 興趣社群（動漫、音樂、手作、寵物）
+  | 'professional'      // 專業領域（科技、金融、健康、法律）
+  | 'other';            // 其他
+
+/**
+ * 語氣風格類型
+ */
+export type PersonaStyle = 
+  | 'humor'         // 親切幽默
+  | 'professional'  // 專業嚴謹
+  | 'casual'        // 輕鬆隨性
+  | 'literary'      // 文青風格
+  | 'enthusiastic'  // 熱情活潑
+  | 'calm';         // 沉穩內斂
+
+/**
+ * 小編人設模板
+ */
+export interface PersonaTemplate {
+  id: string;
+  name: string; // 模板名稱
+  category: FanPageCategory; // 粉專類別
+  style: PersonaStyle; // 語氣風格
+  description: string; // 模板描述
+  template: string; // 模板內容
+  tags: string[]; // 標籤
+  preview?: string; // 預覽範例（可選）
+  suitableFor?: string; // 適用場景說明
+}
+
+/**
+ * 粉專類別標籤
+ */
+export const FAN_PAGE_CATEGORY_LABELS: Record<FanPageCategory, string> = {
+  content_creation: '內容創作',
+  personal_brand: '個人品牌',
+  business_brand: '商業品牌',
+  interest_community: '興趣社群',
+  professional: '專業領域',
+  other: '其他'
+};
+
+/**
+ * 語氣風格標籤
+ */
+export const PERSONA_STYLE_LABELS: Record<PersonaStyle, string> = {
+  humor: '親切幽默',
+  professional: '專業嚴謹',
+  casual: '輕鬆隨性',
+  literary: '文青風格',
+  enthusiastic: '熱情活潑',
+  calm: '沉穩內斂'
+};

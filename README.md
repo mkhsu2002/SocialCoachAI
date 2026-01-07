@@ -138,15 +138,50 @@ npm run build
 npm run preview
 ```
 
-### 部署到 Netlify
+### 🚀 部署到 Cloudflare Pages（推薦）
 
-專案已配置 Netlify 部署設定：
-- `netlify.toml` - Netlify 部署配置
-- `.nvmrc` 和 `.node-version` - Node.js 版本指定
+本專案建議使用 **Cloudflare Pages** 進行部署，提供免費、快速且穩定的靜態網站託管服務。
+
+#### 快速部署步驟
+
+1. **Fork 專案**到您的 GitHub 帳號
+2. **登入 Cloudflare Dashboard** → 選擇 **Pages** → **Create a project**
+3. **連接 GitHub 倉庫**並選擇您的 Fork
+4. **設定建置配置**：
+   - Framework preset: `Vite`
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+5. **點擊 Deploy**，等待建置完成
+
+> 📖 **詳細部署指南**：請參閱 [DEPLOYMENT.md](./DEPLOYMENT.md) 獲取完整的部署說明與進階設定。
+
+#### 自動部署
+
+- ✅ 每次推送到 `main` 分支會自動觸發生產環境部署
+- ✅ 每次建立 Pull Request 會自動建立預覽部署
+- ✅ 免費 SSL 憑證與全球 CDN 加速
+
+### 其他部署選項
+
+專案也支援其他部署平台：
+
+- **Netlify**: 專案已配置 `netlify.toml`，可直接部署
+- **Vercel**: 支援 Vite 專案，自動偵測配置
+- **GitHub Pages**: 需要額外設定，參考 [Vite 部署指南](https://vitejs.dev/guide/static-deploy.html)
 
 ## 🛠️ 開發工具
 
-### 程式碼檢查
+### 程式碼檢查與格式化
+
+```bash
+# 一次性執行所有檢查（推薦，提交 PR 前必執行）
+npm run pre-check
+
+# 自動修復所有可修復的問題
+npm run pre-check:fix
+```
+
+或分別執行：
 
 ```bash
 # 檢查程式碼風格
@@ -154,11 +189,7 @@ npm run lint
 
 # 自動修復
 npm run lint:fix
-```
 
-### 程式碼格式化
-
-```bash
 # 格式化程式碼
 npm run format
 
@@ -223,7 +254,61 @@ npm run format:check
 
 ## 🤝 貢獻
 
-歡迎提交 Issue 和 Pull Request！
+我們非常歡迎您的貢獻！無論是回報 Bug、提出新功能建議，還是提交程式碼改進，您的參與都讓這個專案變得更好。
+
+### 🚀 快速開始貢獻
+
+1. **Fork 專案** - 在 GitHub 上 Fork 本專案
+2. **建立分支** - 建立您的功能分支 (`git checkout -b feature/AmazingFeature`)
+3. **提交變更** - 提交您的改動 (`git commit -m 'feat: Add some AmazingFeature'`)
+4. **推送分支** - 推送到您的 Fork (`git push origin feature/AmazingFeature`)
+5. **建立 PR** - 開啟 Pull Request 並描述您的改動
+
+> 💡 **為什麼要貢獻？** 維護自己的 Fork 很累，而且容易與主線脫節。透過 Pull Request 將您的改動合併回主線，您可以持續享受主線的更新與改進，減少維護成本！
+
+### 📋 貢獻指南
+
+詳細的貢獻指南請參閱 [CONTRIBUTING.md](./CONTRIBUTING.md)，包含：
+- 🐛 如何回報 Bug
+- 💡 如何提交新功能建議
+- 🛠️ 開發環境設置步驟
+- ✅ PR 提交檢核表
+- 📝 程式碼風格指南
+
+### 🎯 Roadmap
+
+以下是目前急需幫助的功能與改進項目，歡迎貢獻！
+
+#### 🔥 高優先級
+- [ ] 🔍 **搜尋功能優化** - 改進搜尋效能與準確度
+- [ ] 🎨 **UI/UX 優化** - 提升使用者體驗與無障礙性
+- [ ] 📱 **響應式設計** - 優化行動裝置顯示效果
+- [ ] 🧪 **測試覆蓋** - 增加單元測試與整合測試
+
+#### 💡 中優先級
+- [ ] 📖 **文件完善** - 補充 API 文件與使用範例
+- [ ] 🌐 **多語言支援** - 實作 i18n 國際化
+- [ ] ⚡ **效能優化** - 改進快取策略與載入速度
+- [ ] 🔐 **安全性增強** - 加強資料驗證與錯誤處理
+
+#### 🎨 低優先級
+- [ ] 🎭 **主題切換** - 支援深色/淺色主題
+- [ ] 📊 **數據分析** - 新增使用統計與分析功能
+- [ ] 🔔 **通知系統** - 提醒功能與通知中心
+- [ ] 🎯 **快捷鍵** - 鍵盤快捷鍵支援
+
+> 💬 如果您有其他想法，歡迎在 [Issues](https://github.com/mkhsu2002/SocialCoachAI/issues) 中提出討論！
+
+### 👥 Contributors
+
+感謝所有為這個專案做出貢獻的開發者！
+
+<!-- 這裡會自動顯示貢獻者列表 -->
+<a href="https://github.com/mkhsu2002/SocialCoachAI/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=mkhsu2002/SocialCoachAI" />
+</a>
+
+每一位貢獻者都是這個專案的重要一員。您的參與讓這個專案變得更好，也幫助了更多社群經營者。🙏
 
 ## 📄 授權條款
 
